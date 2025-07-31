@@ -232,7 +232,7 @@ openTab:CreateToggle({
                     pcall(function()
                         ReplicatedStorage.Remotes.OpenCamoCrate:InvokeServer("Random")
                     end)
-                    task.wait(1)
+                    task.wait(0.1)
                 end
             end)
         end
@@ -251,7 +251,7 @@ openTab:CreateToggle({
                     pcall(function()
                         ReplicatedStorage.Remotes.OpenOutfitCrate:InvokeServer("Random")
                     end)
-                    task.wait(1)
+                    task.wait(0.1)
                 end
             end)
         end
@@ -270,7 +270,7 @@ openTab:CreateToggle({
                     pcall(function()
                         ReplicatedStorage.Remotes.OpenPetCrate:InvokeServer(1)
                     end)
-                    task.wait(1)
+                    task.wait(0.1)
                 end
             end)
         end
@@ -289,7 +289,7 @@ openTab:CreateToggle({
                     pcall(function()
                         ReplicatedStorage.Remotes.OpenGunCrate:InvokeServer(1)
                     end)
-                    task.wait(1)
+                    task.wait(0.1)
                 end
             end) 
         end
