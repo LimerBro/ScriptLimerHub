@@ -1,5 +1,5 @@
  --Load Rayfield
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
@@ -129,6 +129,59 @@ local WalkSpeedSlider = CombatTab:CreateSlider({
     Callback = function(Value)
         game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed = Value
     end
+})
+
+-- Кнопка/перемикач для орбіти
+CombatTab:CreateToggle({
+    Name = "Circling around the Boss",
+    CurrentValue = false,
+    Callback = function(value)
+        spinning = value
+    end,
+})
+
+-- Слайдер швидкості
+CombatTab:CreateSlider({
+    Name = "Rotation speed",
+    Range = {1, 20},
+    Increment = 0.1,
+    Suffix = "x",
+    CurrentValue = speed,
+    Callback = function(val)
+        speed = val
+    end,
+})
+
+-- Слайдер радіусу
+CombatTab:CreateSlider({
+    Name = "Orbit radius",
+    Range = {5, 100},
+    Increment = 1,
+    Suffix = "studs",
+    CurrentValue = radius,
+    Callback = function(val)
+        radius = val
+    end,
+})
+
+-- Основна логіка орбіти
+RunService.RenderStepped:Connect(function(dt)
+    if spinning and HRP and center then
+        angle += dt * speed
+        local x = math.cos(angle) * radius
+        local z = math.sin(angle) * radius
+        local targetPosition = center.Position + Vector3.new(x, 0, z)
+        HRP.CFrame = CFrame.new(targetPosition, center.Position)
+    end
+end)
+-- ✅ Кнопка TP у вкладці Combat
+CombatTab:CreateButton({
+    Name = "TP to Safe Zone",
+    Callback = function()
+        if HRP then
+            HRP.CFrame = CFrame.new(-1284.7, 256.2, -1166.1)
+        end
+    end,
 })
 
 local MiscTab = Window:CreateTab("Misc", "Skull")
