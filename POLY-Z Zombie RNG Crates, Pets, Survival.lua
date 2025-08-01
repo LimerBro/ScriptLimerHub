@@ -1,7 +1,8 @@
- --Load Rayfield
+--Load Rayfield
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
@@ -129,62 +130,6 @@ local WalkSpeedSlider = CombatTab:CreateSlider({
     Callback = function(Value)
         game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed = Value
     end
-})
-
-local modTab = Window:CreateTab("Afk Mod", "Skull")
-
--- Orbit Toggle
-modTab:CreateToggle({
-    Name = "Circling around the Boss",
-    CurrentValue = false,
-    Callback = function(value)
-        spinning = value
-    end,
-})
-
--- Orbit Speed Slider
-modTab:CreateSlider({
-    Name = "Rotation speed",
-    Range = {1, 20},
-    Increment = 0.1,
-    Suffix = "x",
-    CurrentValue = speed,
-    Callback = function(val)
-        speed = val
-    end,
-})
-
--- Orbit Radius Slider
-modTab:CreateSlider({
-    Name = "Orbit radius",
-    Range = {5, 100},
-    Increment = 1,
-    Suffix = "studs",
-    CurrentValue = radius,
-    Callback = function(val)
-        radius = val
-    end,
-})
-
--- Orbit Logic
-RunService.RenderStepped:Connect(function(dt)
-    if spinning and HRP and center then
-        angle += dt * speed
-        local x = math.cos(angle) * radius
-        local z = math.sin(angle) * radius
-        local targetPosition = center.Position + Vector3.new(x, 0, z)
-        HRP.CFrame = CFrame.new(targetPosition, center.Position)
-    end
-end)
-
--- TP Button
-modTab:CreateButton({
-    Name = "TP to Safe Zone",
-    Callback = function()
-        if HRP then
-            HRP.CFrame = CFrame.new(-1284.7, 256.2, -1166.1)
-        end
-    end,
 })
 
 local MiscTab = Window:CreateTab("Misc", "Skull")
@@ -350,6 +295,93 @@ openTab:CreateToggle({
             end) 
         end
     end
+})
+
+-- Mod Tab
+local ModTab = Window:CreateTab("Mod", "Skull")
+
+-- Orbit variables
+local spinning = false
+local angle = 0
+local speed = 5
+local radius = 15
+local HRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+local center = workspace:FindFirstChild("Boss") or workspace:FindFirstChild("Enemies")
+
+-- Update HRP reference when character changes
+player.CharacterAdded:Connect(function(char)
+    HRP = char:WaitForChild("HumanoidRootPart")
+end)
+
+-- Orbit Toggle
+ModTab:CreateToggle({
+    Name = "Circling around the Boss",
+    CurrentValue = false,
+    Callback = function(value)
+        spinning = value
+        if value then
+            -- Find boss or enemy to circle around
+            center = workspace:FindFirstChild("Boss") or workspace:FindFirstChild("Enemies")
+            if center then
+                if center:IsA("Folder") or center:IsA("Model") then
+                    -- Get first child if it's a folder
+                    for _, obj in pairs(center:GetChildren()) do
+                        if obj:FindFirstChild("HumanoidRootPart") then
+                            center = obj.HumanoidRootPart
+                            break
+                        end
+                    end
+                elseif center:FindFirstChild("HumanoidRootPart") then
+                    center = center.HumanoidRootPart
+                end
+            end
+        end
+    end,
+})
+
+-- Orbit Speed Slider
+ModTab:CreateSlider({
+    Name = "Rotation speed",
+    Range = {1, 20},
+    Increment = 0.1,
+    Suffix = "x",
+    CurrentValue = speed,
+    Callback = function(val)
+        speed = val
+    end,
+})
+
+-- Orbit Radius Slider
+ModTab:CreateSlider({
+    Name = "Orbit radius",
+    Range = {5, 100},
+    Increment = 1,
+    Suffix = "studs",
+    CurrentValue = radius,
+    Callback = function(val)
+        radius = val
+    end,
+})
+
+-- Orbit Logic
+RunService.RenderStepped:Connect(function(dt)
+    if spinning and HRP and center then
+        angle += dt * speed
+        local x = math.cos(angle) * radius
+        local z = math.sin(angle) * radius
+        local targetPosition = center.Position + Vector3.new(x, 0, z)
+        HRP.CFrame = CFrame.new(targetPosition, center.Position)
+    end
+end)
+
+-- TP Button
+ModTab:CreateButton({
+    Name = "TP to Safe Zone",
+    Callback = function()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(-1284.7, 256.2, -1166.1)
+        end
+    end,
 })
 
 -- Load config
