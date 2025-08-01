@@ -1,14 +1,22 @@
- --Load Rayfield
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Load Rayfield
+local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+local HRP = player.Character and player.Character:WaitForChild("HumanoidRootPart")
+local center = workspace:WaitForChild("BossArena"):FindFirstChild("Part")
+local radius = 20
+local angle = 0
+local speed = 5
+local spinning = false
 
 -- UI Window
 local Window = Rayfield:CreateWindow({
     Name = "LimerHub",
-    Icon = 71338090068856,
+    Icon = "rbxassetid://71338090068856", -- Виправлено
     LoadingTitle = "✨POLY-Z Zombie RNG🎲Crates, Pets, Survival⚔️",
     LoadingSubtitle = "Developed by LimerBro",
     Theme = "DarkBlue",
@@ -19,7 +27,6 @@ local Window = Rayfield:CreateWindow({
         FileName = "Config"
     }
 })
-
 
 -- Get equipped weapon name
 local function getEquippedWeaponName()
@@ -39,8 +46,6 @@ local CombatTab = Window:CreateTab("Combat", "Skull")
 
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
-
--- Update label
 task.spawn(function()
     while true do
         weaponLabel:Set("🔫 Current Weapon: " .. getEquippedWeaponName())
@@ -48,12 +53,10 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots з ручною зміною швидкості
-
+-- Auto Headshots
 local autoKill = false
-local shootDelay = 0.1 -- стандартна затримка між пострілами
+local shootDelay = 0.1
 
--- Слайдер для зміни швидкості
 CombatTab:CreateSlider({
     Name = "Delay between shots (sec)",
     Range = {0.01, 1},
@@ -66,7 +69,6 @@ CombatTab:CreateSlider({
     end
 })
 
--- Тогл для автокіллу
 CombatTab:CreateToggle({
     Name = "Auto Headshot Zombies",
     CurrentValue = false,
@@ -96,6 +98,7 @@ CombatTab:CreateToggle({
         end
     end
 })
+
 -- Auto Skip Round
 local autoSkip = false
 CombatTab:CreateToggle({
@@ -118,8 +121,8 @@ CombatTab:CreateToggle({
     end
 })
 
--- Speed Slider
-local WalkSpeedSlider = CombatTab:CreateSlider({
+-- WalkSpeed
+CombatTab:CreateSlider({
     Name = "Walking speed",
     Range = {16, 200},
     Increment = 1,
@@ -127,11 +130,13 @@ local WalkSpeedSlider = CombatTab:CreateSlider({
     CurrentValue = 16,
     Flag = "WalkSpeed",
     Callback = function(Value)
-        game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed = Value
+        if player.Character then
+            player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = Value
+        end
     end
 })
 
--- Кнопка/перемикач для орбіти
+-- Orbit Toggle
 CombatTab:CreateToggle({
     Name = "Circling around the Boss",
     CurrentValue = false,
@@ -140,7 +145,7 @@ CombatTab:CreateToggle({
     end,
 })
 
--- Слайдер швидкості
+-- Orbit Speed Slider
 CombatTab:CreateSlider({
     Name = "Rotation speed",
     Range = {1, 20},
@@ -152,7 +157,7 @@ CombatTab:CreateSlider({
     end,
 })
 
--- Слайдер радіусу
+-- Orbit Radius Slider
 CombatTab:CreateSlider({
     Name = "Orbit radius",
     Range = {5, 100},
@@ -164,7 +169,7 @@ CombatTab:CreateSlider({
     end,
 })
 
--- Основна логіка орбіти
+-- Orbit Logic
 RunService.RenderStepped:Connect(function(dt)
     if spinning and HRP and center then
         angle += dt * speed
@@ -174,7 +179,8 @@ RunService.RenderStepped:Connect(function(dt)
         HRP.CFrame = CFrame.new(targetPosition, center.Position)
     end
 end)
--- ✅ Кнопка TP у вкладці Combat
+
+-- TP Button
 CombatTab:CreateButton({
     Name = "TP to Safe Zone",
     Callback = function()
