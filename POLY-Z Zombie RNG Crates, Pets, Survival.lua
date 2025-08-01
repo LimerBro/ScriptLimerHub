@@ -131,8 +131,10 @@ local WalkSpeedSlider = CombatTab:CreateSlider({
     end
 })
 
+local modTab = Window:CreateTab("Afk Mod", "Skull")
+
 -- Orbit Toggle
-CombatTab:CreateToggle({
+modTab:CreateToggle({
     Name = "Circling around the Boss",
     CurrentValue = false,
     Callback = function(value)
@@ -141,7 +143,7 @@ CombatTab:CreateToggle({
 })
 
 -- Orbit Speed Slider
-CombatTab:CreateSlider({
+modTab:CreateSlider({
     Name = "Rotation speed",
     Range = {1, 20},
     Increment = 0.1,
@@ -153,7 +155,7 @@ CombatTab:CreateSlider({
 })
 
 -- Orbit Radius Slider
-CombatTab:CreateSlider({
+modTab:CreateSlider({
     Name = "Orbit radius",
     Range = {5, 100},
     Increment = 1,
@@ -176,7 +178,7 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 -- TP Button
-CombatTab:CreateButton({
+modTab:CreateButton({
     Name = "TP to Safe Zone",
     Callback = function()
         if HRP then
