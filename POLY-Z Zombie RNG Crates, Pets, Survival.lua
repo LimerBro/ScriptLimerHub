@@ -1,19 +1,21 @@
---Load Rayfield
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+-- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
--- UI Window
+-- Load Rayfield UI Library
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- UI Window Configuration
 local Window = Rayfield:CreateWindow({
-    Name = "LimerHub",
+    Name = "✨ LimerHub ✨ | POLY-Z",
     Icon = 71338090068856,
-    LoadingTitle = "✨POLY-Z Zombie RNG🎲Crates, Pets, Survival⚔️",
-    LoadingSubtitle = "Developed by LimerBro",
-    Theme = "DarkBlue",
-    ToggleUIKeybind = "K",
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "Author: LimerBoy",
+    Theme = "Dark",
+    ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "ZombieHub",
@@ -21,8 +23,7 @@ local Window = Rayfield:CreateWindow({
     }
 })
 
-
--- Get equipped weapon name
+-- Utility Functions
 local function getEquippedWeaponName()
     local model = workspace:FindFirstChild("Players"):FindFirstChild(player.Name)
     if model then
@@ -36,7 +37,7 @@ local function getEquippedWeaponName()
 end
 
 -- Combat Tab
-local CombatTab = Window:CreateTab("Combat", "Skull")
+local CombatTab = Window:CreateTab("⚔️ Combat", "Skull")
 
 -- Weapon Label
 local weaponLabel = CombatTab:CreateLabel("🔫 Current Weapon: Loading...")
@@ -49,27 +50,38 @@ task.spawn(function()
     end
 end)
 
--- Auto Headshots з ручною зміною швидкості
-
+-- Auto Headshots
 local autoKill = false
-local shootDelay = 0.1 -- стандартна затримка між пострілами
+local shootDelay = 0.1
 
--- Слайдер для зміни швидкості
-CombatTab:CreateSlider({
-    Name = "Delay between shots (sec)",
-    Range = {0.01, 1},
-    Increment = 0.01,
-    Suffix = "сек",
-    CurrentValue = shootDelay,
-    Flag = "ShootDelay",
-    Callback = function(value)
-        shootDelay = value
-    end
+-- Text input for shot delay
+CombatTab:CreateInput({
+    Name = "⏱️ Shot delay (0-2 sec)",
+    PlaceholderText = "0.1",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(text)
+        local num = tonumber(text)
+        if num and num >= 0 and num <= 2 then
+            shootDelay = num
+            Rayfield:Notify({
+                Title = "Success",
+                Content = "Shot delay set to "..num.." seconds",
+                Duration = 3,
+                Image = 4483362458
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Please enter a number between 0 and 2",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end,
 })
 
--- Тогл для автокіллу
 CombatTab:CreateToggle({
-    Name = "Auto Headshot Zombies",
+    Name = "🔪 Auto Headshots",
     CurrentValue = false,
     Flag = "AutoKillZombies",
     Callback = function(state)
@@ -97,10 +109,9 @@ CombatTab:CreateToggle({
         end
     end
 })
--- Auto Skip Round
-local autoSkip = false
+
 CombatTab:CreateToggle({
-    Name = "Auto Skip Round",
+    Name = "⏩ Auto Skip Round",
     CurrentValue = false,
     Flag = "AutoSkipRound",
     Callback = function(state)
@@ -119,9 +130,8 @@ CombatTab:CreateToggle({
     end
 })
 
--- Speed Slider
-local WalkSpeedSlider = CombatTab:CreateSlider({
-    Name = "Walking speed",
+CombatTab:CreateSlider({
+    Name = "🏃‍♂️ Walk Speed",
     Range = {16, 200},
     Increment = 1,
     Suffix = "units",
@@ -132,10 +142,13 @@ local WalkSpeedSlider = CombatTab:CreateSlider({
     end
 })
 
-local MiscTab = Window:CreateTab("Misc", "Skull")
+-- Misc Tab
+local MiscTab = Window:CreateTab("✨ Utilities", "Sparkles")
+
+MiscTab:CreateSection("🔧 Tools")
 
 MiscTab:CreateButton({
-    Name = "Delete All Doors",
+    Name = "🚪 Delete All Doors",
     Callback = function()
         local doorsFolder = workspace:FindFirstChild("Doors")
         if doorsFolder then
@@ -144,86 +157,153 @@ MiscTab:CreateButton({
                     group:Destroy()
                 end
             end
+            Rayfield:Notify({
+                Title = "Success",
+                Content = "All doors deleted!",
+                Duration = 3,
+                Image = 4483362458
+            })
         end
     end
 })
 
 MiscTab:CreateButton({
-    Name = "Activate All Perks",
+    Name = "📍 TP to Safe Zone",
+    Callback = function()
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(-1284.7, 256.2, -1166.1)
+            Rayfield:Notify({
+                Title = "Teleport",
+                Content = "Moved to safe zone!",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end
+    end,
+})
+
+MiscTab:CreateSection("💎 Enhancements")
+
+MiscTab:CreateButton({
+    Name = "🌟 Activate All Perks",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then return end
 
-        local perks = {
-            "Bandoiler_Perk",
-            "DoubleUp_Perk",
-            "Haste_Perk",
-            "Tank_Perk"
-        }
+        local perks = {  
+            "Bandoiler_Perk",  
+            "DoubleUp_Perk",  
+            "Haste_Perk",  
+            "Tank_Perk",  
+            "GasMask_Perk",  
+            "DeadShot_Perk",  
+            "DoubleMag_Perk",  
+            "WickedGrenade_Perk"  
+        }  
 
-        for _, perk in ipairs(perks) do
-            if vars:GetAttribute(perk) ~= nil then
-                vars:SetAttribute(perk, true)
-            end
+        for _, perk in ipairs(perks) do  
+            if vars:GetAttribute(perk) ~= nil then  
+                vars:SetAttribute(perk, true)  
+            end  
         end
+        Rayfield:Notify({
+            Title = "Perks",
+            Content = "All perks activated!",
+            Duration = 3,
+            Image = 4483362458
+        })
     end
 })
 
 MiscTab:CreateButton({
-    Name = "Enhance Primary & Secondary",
+    Name = "🔫 Enhance Weapons",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then return end
 
-        local enchants = {
-            "Primary_Enhanced",
-            "Secondary_Enhanced"
-        }
+        local enchants = {  
+            "Primary_Enhanced",  
+            "Secondary_Enhanced"  
+        }  
 
-        for _, attr in ipairs(enchants) do
-            if vars:GetAttribute(attr) ~= nil then
-                vars:SetAttribute(attr, true)
-            end
+        for _, attr in ipairs(enchants) do  
+            if vars:GetAttribute(attr) ~= nil then  
+                vars:SetAttribute(attr, true)  
+            end  
         end
+        Rayfield:Notify({
+            Title = "Enhancement",
+            Content = "Weapons enhanced!",
+            Duration = 3,
+            Image = 4483362458
+        })
     end
 })
 
 MiscTab:CreateButton({
-    Name = "Set Mag to 1 Million",
+    Name = "🎯 Infinite Magazines",
     Callback = function()
         local vars = player:FindFirstChild("Variables")
         if not vars then return end
 
-        local ammoAttributes = {
-            "Primary_Mag",
-            "Secondary_Mag"
-        }
+        local ammoAttributes = {  
+            "Primary_Mag",  
+            "Secondary_Mag"  
+        }  
 
-        for _, attr in ipairs(ammoAttributes) do
-            if vars:GetAttribute(attr) ~= nil then
-                vars:SetAttribute(attr, 100000000)
-            end
+        for _, attr in ipairs(ammoAttributes) do  
+            if vars:GetAttribute(attr) ~= nil then  
+                vars:SetAttribute(attr, 100000000)  
+            end  
         end
+        Rayfield:Notify({
+            Title = "Magazines",
+            Content = "Infinite magazines set!",
+            Duration = 3,
+            Image = 4483362458
+        })
     end
 })
 
 MiscTab:CreateButton({
-    Name = "Set All Guns to 'cosmic'",
+    Name = "💫 Celestial Weapons",
     Callback = function()
         local gunData = player:FindFirstChild("GunData")
         if not gunData then return end
 
-        for _, value in ipairs(gunData:GetChildren()) do
-            if value:IsA("StringValue") then
-                value.Value = "cosmic"
-            end
+        for _, value in ipairs(gunData:GetChildren()) do  
+            if value:IsA("StringValue") then  
+                value.Value = "celestial"  
+            end  
         end
+        Rayfield:Notify({
+            Title = "Weapons",
+            Content = "Set to Celestial tier!",
+            Duration = 3,
+            Image = 4483362458
+        })
     end
 })
-local openTab = Window:CreateTab("Open", "Skull")
--- Перемикач для Камо ящика
-openTab:CreateToggle({
-    Name = "Auto Opening 🕶️",
+
+-- Open Tab
+local OpenTab = Window:CreateTab("🎁 Crates", "Gift")
+
+local selectedQuantity = 1
+OpenTab:CreateDropdown({
+    Name = "🔢 Open Quantity",
+    Options = {"1", "25", "50", "200"},
+    CurrentOption = "1",
+    Flag = "OpenQuantity",
+    Callback = function(Option)
+        selectedQuantity = tonumber(Option)
+    end,
+})
+
+OpenTab:CreateSection("📦 Auto Open Crates")
+
+local autoOpenCamo = false
+OpenTab:CreateToggle({
+    Name = "🕶️ Camo Crates",
     CurrentValue = false,
     Callback = function(state)
         autoOpenCamo = state
@@ -231,7 +311,10 @@ openTab:CreateToggle({
             task.spawn(function()
                 while autoOpenCamo do
                     pcall(function()
-                        ReplicatedStorage.Remotes.OpenCamoCrate:InvokeServer("Random")
+                        for i = 1, selectedQuantity do
+                            ReplicatedStorage.Remotes.OpenCamoCrate:InvokeServer("Random")
+                            task.wait(0.1)
+                        end
                     end)
                     task.wait(1)
                 end
@@ -240,9 +323,9 @@ openTab:CreateToggle({
     end
 })
 
--- Перемикач для Одягу
-openTab:CreateToggle({
-    Name = "Auto Opening 👕",
+local autoOpenOutfit = false
+OpenTab:CreateToggle({
+    Name = "👕 Outfit Crates",
     CurrentValue = false,
     Callback = function(state)
         autoOpenOutfit = state
@@ -250,7 +333,10 @@ openTab:CreateToggle({
             task.spawn(function()
                 while autoOpenOutfit do
                     pcall(function()
-                        ReplicatedStorage.Remotes.OpenOutfitCrate:InvokeServer("Random")
+                        for i = 1, selectedQuantity do
+                            ReplicatedStorage.Remotes.OpenOutfitCrate:InvokeServer("Random")
+                            task.wait(0.1)
+                        end
                     end)
                     task.wait(1)
                 end
@@ -259,9 +345,9 @@ openTab:CreateToggle({
     end
 })
 
--- Перемикач для Пета
-openTab:CreateToggle({
-    Name = "Auto Opening 😺",
+local autoOpenPet = false
+OpenTab:CreateToggle({
+    Name = "🐾 Pet Crates",
     CurrentValue = false,
     Callback = function(state)
         autoOpenPet = state
@@ -269,18 +355,21 @@ openTab:CreateToggle({
             task.spawn(function()
                 while autoOpenPet do
                     pcall(function()
-                        ReplicatedStorage.Remotes.OpenPetCrate:InvokeServer(1)
+                        for i = 1, selectedQuantity do
+                            ReplicatedStorage.Remotes.OpenPetCrate:InvokeServer(1)
+                            task.wait(0.1)
+                        end
                     end)
-                    task.wait(1)
+                    task.wait(0.1)
                 end
             end)
         end
     end
 })
 
--- Перемикач для Зброї
-openTab:CreateToggle({
-    Name = "Auto Opening 🔫",
+local autoOpenGun = false
+OpenTab:CreateToggle({
+    Name = "🔫 Weapon Crates",
     CurrentValue = false,
     Callback = function(state)
         autoOpenGun = state
@@ -288,101 +377,84 @@ openTab:CreateToggle({
             task.spawn(function()
                 while autoOpenGun do
                     pcall(function()
-                        ReplicatedStorage.Remotes.OpenGunCrate:InvokeServer(1)
+                        for i = 1, selectedQuantity do
+                            ReplicatedStorage.Remotes.OpenGunCrate:InvokeServer(1)
+                            task.wait(0.1)
+                        end
                     end)
-                    task.wait(1)
+                    task.wait(0.1)
                 end
-            end) 
+            end)
         end
     end
 })
 
 -- Mod Tab
-local ModTab = Window:CreateTab("Mod", "Skull")
+local ModTab = Window:CreateTab("🌀 Mods", "Skull")
 
--- Orbit variables
 local spinning = false
 local angle = 0
 local speed = 5
 local radius = 15
 local HRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-local center = workspace:FindFirstChild("Boss") or workspace:FindFirstChild("Enemies")
+local center = nil
 
--- Update HRP reference when character changes
 player.CharacterAdded:Connect(function(char)
     HRP = char:WaitForChild("HumanoidRootPart")
 end)
 
--- Orbit Toggle
 ModTab:CreateToggle({
-    Name = "Circling around the Boss",
+    Name = "🌪️ Orbit Around Boss",
     CurrentValue = false,
     Callback = function(value)
         spinning = value
         if value then
-            -- Find boss or enemy to circle around
-            center = workspace:FindFirstChild("Boss") or workspace:FindFirstChild("Enemies")
-            if center then
-                if center:IsA("Folder") or center:IsA("Model") then
-                    -- Get first child if it's a folder
-                    for _, obj in pairs(center:GetChildren()) do
-                        if obj:FindFirstChild("HumanoidRootPart") then
-                            center = obj.HumanoidRootPart
-                            break
-                        end
-                    end
-                elseif center:FindFirstChild("HumanoidRootPart") then
-                    center = center.HumanoidRootPart
-                end
+            local arena = workspace:FindFirstChild("BossArena")
+            if arena and arena:FindFirstChild("Part") then
+                center = arena.Part
+            else
+                Rayfield:Notify({
+                    Title = "Error",
+                    Content = "Boss not found!",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+                spinning = false
             end
         end
     end,
 })
 
--- Orbit Speed Slider
 ModTab:CreateSlider({
-    Name = "Rotation speed",
+    Name = "⚡ Rotation Speed",
     Range = {1, 20},
     Increment = 0.1,
     Suffix = "x",
-    CurrentValue = speed,
+    CurrentValue = 5,
     Callback = function(val)
         speed = val
     end,
 })
 
--- Orbit Radius Slider
 ModTab:CreateSlider({
-    Name = "Orbit radius",
+    Name = "📏 Orbit Radius",
     Range = {5, 100},
     Increment = 1,
-    Suffix = "studs",
-    CurrentValue = radius,
+    Suffix = "units",
+    CurrentValue = 15,
     Callback = function(val)
         radius = val
     end,
 })
 
--- Orbit Logic
-RunService.RenderStepped:Connect(function(dt)
+-- Orbit update loop
+RunService.Heartbeat:Connect(function()
     if spinning and HRP and center then
-        angle += dt * speed
-        local x = math.cos(angle) * radius
-        local z = math.sin(angle) * radius
-        local targetPosition = center.Position + Vector3.new(x, 0, z)
-        HRP.CFrame = CFrame.new(targetPosition, center.Position)
+        angle = angle + speed * 0.01
+        local offset = Vector3.new(math.sin(angle) * radius, 0, math.cos(angle) * radius)
+        HRP.CFrame = CFrame.new(center.Position + offset, center.Position)
     end
 end)
-
--- TP Button
-ModTab:CreateButton({
-    Name = "TP to Safe Zone",
-    Callback = function()
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(-1284.7, 256.2, -1166.1)
-        end
-    end,
-})
 
 -- Load config
 Rayfield:LoadConfiguration()
