@@ -6,7 +6,7 @@ local player = Players.LocalPlayer
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 
 -- Load Rayfield UI Library
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
 
 -- UI Window Configuration
 local Window = Rayfield:CreateWindow({
@@ -14,7 +14,7 @@ local Window = Rayfield:CreateWindow({
     Icon = 71338090068856,
     LoadingTitle = "Loading...",
     LoadingSubtitle = "Author: LimerBoy",
-    Theme = "Dark",
+    Theme = "BlackWhite",
     ToggleUIKeybind = Enum.KeyCode.K,
     ConfigurationSaving = {
         Enabled = true,
@@ -97,7 +97,7 @@ CombatTab:CreateToggle({
                             if zombie:IsA("Model") then
                                 local head = zombie:FindFirstChild("Head")
                                 if head then
-                                    local args = {zombie, head, head.Position, 0, weapon}
+                                    local args = {zombie, head, head.Position, 0.5, weapon}
                                     pcall(function() shootRemote:FireServer(unpack(args)) end)
                                 end
                             end
@@ -168,21 +168,31 @@ MiscTab:CreateButton({
 })
 
 MiscTab:CreateButton({
-    Name = "📍 TP to Safe Zone",
+    Name = "🎯 Infinite Magazines",
     Callback = function()
-        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(-1284.7, 256.2, -1166.1)
-            Rayfield:Notify({
-                Title = "Teleport",
-                Content = "Moved to safe zone!",
-                Duration = 3,
-                Image = 4483362458
-            })
+        local vars = player:FindFirstChild("Variables")
+        if not vars then return end
+
+        local ammoAttributes = {  
+            "Primary_Mag",  
+            "Secondary_Mag"  
+        }  
+
+        for _, attr in ipairs(ammoAttributes) do  
+            if vars:GetAttribute(attr) ~= nil then  
+                vars:SetAttribute(attr, 100000000)  
+            end  
         end
-    end,
+        Rayfield:Notify({
+            Title = "Magazines",
+            Content = "Infinite magazines set!",
+            Duration = 3,
+            Image = 4483362458
+        })
+    end
 })
 
-MiscTab:CreateSection("💎 Enhancements")
+MiscTab:CreateSection("💎 Enhancements Visual")
 
 MiscTab:CreateButton({
     Name = "🌟 Activate All Perks",
@@ -240,30 +250,6 @@ MiscTab:CreateButton({
     end
 })
 
-MiscTab:CreateButton({
-    Name = "🎯 Infinite Magazines",
-    Callback = function()
-        local vars = player:FindFirstChild("Variables")
-        if not vars then return end
-
-        local ammoAttributes = {  
-            "Primary_Mag",  
-            "Secondary_Mag"  
-        }  
-
-        for _, attr in ipairs(ammoAttributes) do  
-            if vars:GetAttribute(attr) ~= nil then  
-                vars:SetAttribute(attr, 100000000)  
-            end  
-        end
-        Rayfield:Notify({
-            Title = "Magazines",
-            Content = "Infinite magazines set!",
-            Duration = 3,
-            Image = 4483362458
-        })
-    end
-})
 
 MiscTab:CreateButton({
     Name = "💫 Celestial Weapons",
@@ -288,7 +274,10 @@ MiscTab:CreateButton({
 -- Open Tab
 local OpenTab = Window:CreateTab("🎁 Crates", "Gift")
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local selectedQuantity = 1
+local selectedOutfitType = "Random" -- для Outfit кейсів
+
 OpenTab:CreateDropdown({
     Name = "🔢 Open Quantity",
     Options = {"1", "25", "50", "200"},
@@ -301,6 +290,21 @@ OpenTab:CreateDropdown({
 
 OpenTab:CreateSection("📦 Auto Open Crates")
 
+-- 🎽 Випадаючий список типів для Outfit кейсів
+OpenTab:CreateDropdown({
+    Name = "👕 Outfit Type",
+    Options = {
+        "Random", "Hat", "torseaccessory", "legaccessory", "faceaccessory", 
+        "armaccessory", "backaccessory", "gloves", "shoes", "hair",
+        "shirt", "pants", "haircolor", "skincolor", "face"
+    },
+    CurrentOption = "Random",
+    Callback = function(option)
+        selectedOutfitType = option
+    end,
+})
+
+-- 🕶️ Camo Crates
 local autoOpenCamo = false
 OpenTab:CreateToggle({
     Name = "🕶️ Camo Crates",
@@ -323,6 +327,7 @@ OpenTab:CreateToggle({
     end
 })
 
+-- 👕 Outfit Crates
 local autoOpenOutfit = false
 OpenTab:CreateToggle({
     Name = "👕 Outfit Crates",
@@ -334,7 +339,7 @@ OpenTab:CreateToggle({
                 while autoOpenOutfit do
                     pcall(function()
                         for i = 1, selectedQuantity do
-                            ReplicatedStorage.Remotes.OpenOutfitCrate:InvokeServer("Random")
+                            ReplicatedStorage.Remotes.OpenOutfitCrate:InvokeServer(selectedOutfitType)
                             task.wait(0.1)
                         end
                     end)
@@ -345,6 +350,7 @@ OpenTab:CreateToggle({
     end
 })
 
+-- 🐾 Pet Crates
 local autoOpenPet = false
 OpenTab:CreateToggle({
     Name = "🐾 Pet Crates",
@@ -367,6 +373,7 @@ OpenTab:CreateToggle({
     end
 })
 
+-- 🔫 Weapon Crates
 local autoOpenGun = false
 OpenTab:CreateToggle({
     Name = "🔫 Weapon Crates",
@@ -389,42 +396,71 @@ OpenTab:CreateToggle({
     end
 })
 
+
 -- Mod Tab
 local ModTab = Window:CreateTab("🌀 Mods", "Skull")
 
+-- ⬇ Змінні оголошуються глобально (всередині скрипта, але поза функціями)
 local spinning = false
 local angle = 0
-local speed = 5
-local radius = 15
+local speed = 5      -- ✅ глобально
+local radius = 15    -- ✅ глобально
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
 local HRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-local center = nil
 
 player.CharacterAdded:Connect(function(char)
     HRP = char:WaitForChild("HumanoidRootPart")
 end)
 
+-- 🔁 Головне коло
+RunService.RenderStepped:Connect(function(dt)
+    if spinning and HRP then
+        local function findNearestBoss()
+            local bosses = {
+                workspace.Enemies:FindFirstChild("GoblinKing"),
+                workspace.Enemies:FindFirstChild("CaptainBoom"),
+                workspace.Enemies:FindFirstChild("Fungarth")
+            }
+
+            local nearestBoss = nil
+            local shortestDistance = math.huge
+
+            for _, boss in pairs(bosses) do
+                if boss and boss:FindFirstChild("Head") then
+                    local distance = (boss.Head.Position - HRP.Position).Magnitude
+                    if distance < shortestDistance then
+                        shortestDistance = distance
+                        nearestBoss = boss
+                    end
+                end
+            end
+            return nearestBoss
+        end
+
+        local boss = findNearestBoss()
+        if boss and boss:FindFirstChild("Head") then
+            angle += dt * speed  -- ✅ використовує глобальну змінну
+            local bossPos = boss.Head.Position
+            local offset = Vector3.new(math.cos(angle), 0, math.sin(angle)) * radius -- ✅ радіус
+            local orbitPos = bossPos + offset
+            HRP.CFrame = CFrame.new(Vector3.new(orbitPos.X, bossPos.Y, orbitPos.Z), bossPos)
+        end
+    end
+end)
+
+-- 🔘 Кнопка в меню
 ModTab:CreateToggle({
     Name = "🌪️ Orbit Around Boss",
     CurrentValue = false,
     Callback = function(value)
         spinning = value
-        if value then
-            local arena = workspace:FindFirstChild("BossArena")
-            if arena and arena:FindFirstChild("Part") then
-                center = arena.Part
-            else
-                Rayfield:Notify({
-                    Title = "Error",
-                    Content = "Boss not found!",
-                    Duration = 3,
-                    Image = 4483362458
-                })
-                spinning = false
-            end
-        end
-    end,
+    end
 })
 
+-- ⚙️ Слайдер швидкості
 ModTab:CreateSlider({
     Name = "⚡ Rotation Speed",
     Range = {1, 20},
@@ -432,10 +468,11 @@ ModTab:CreateSlider({
     Suffix = "x",
     CurrentValue = 5,
     Callback = function(val)
-        speed = val
-    end,
+        speed = val   -- ✅ оновлює глобальну змінну
+    end
 })
 
+-- 📏 Слайдер радіуса
 ModTab:CreateSlider({
     Name = "📏 Orbit Radius",
     Range = {5, 100},
@@ -443,18 +480,79 @@ ModTab:CreateSlider({
     Suffix = "units",
     CurrentValue = 15,
     Callback = function(val)
-        radius = val
-    end,
+        radius = val  -- ✅ оновлює глобальну змінну
+    end
 })
 
--- Orbit update loop
-RunService.Heartbeat:Connect(function()
-    if spinning and HRP and center then
-        angle = angle + speed * 0.01
-        local offset = Vector3.new(math.sin(angle) * radius, 0, math.cos(angle) * radius)
-        HRP.CFrame = CFrame.new(center.Position + offset, center.Position)
+
+ModTab:CreateButton({
+    Name = "🛸 TP & Smart Platform",
+    Callback = function()
+        local Players = game:GetService("Players")
+        local RunService = game:GetService("RunService")
+        local player = Players.LocalPlayer
+        local HRP = player.Character and player.Character:WaitForChild("HumanoidRootPart")
+
+        if not HRP then
+            warn("❌ HumanoidRootPart не знайдено")
+            return
+        end
+
+        local currentPos = HRP.Position
+        local targetPos = currentPos + Vector3.new(0, 60, 0)
+
+        -- 🧱 Створюємо платформу
+        local platform = Instance.new("Part")
+        platform.Size = Vector3.new(20, 1, 20)
+        platform.Anchored = true
+        platform.Position = targetPos - Vector3.new(0, 2, 0)
+        platform.Color = Color3.fromRGB(120, 120, 120)
+        platform.Material = Enum.Material.Metal
+        platform.Name = "SmartPlatform"
+        platform.Parent = workspace
+
+        -- ⏫ Телепорт гравця трохи вище платформи
+        HRP.CFrame = CFrame.new(targetPos + Vector3.new(0, 2, 0))
+
+        -- ⏱️ Таймер самознищення, коли гравець сходить
+        local isStanding = true
+        local lastTouch = tick()
+
+        -- Перевірка кожен кадр
+        local conn
+        conn = RunService.RenderStepped:Connect(function()
+            if not platform or not platform.Parent then
+                conn:Disconnect()
+                return
+            end
+
+            local char = player.Character
+            local humanoidRoot = char and char:FindFirstChild("HumanoidRootPart")
+            if not humanoidRoot then return end
+
+            local rayOrigin = humanoidRoot.Position
+            local rayDirection = Vector3.new(0, -5, 0)
+            local raycastParams = RaycastParams.new()
+            raycastParams.FilterDescendantsInstances = {char}
+            raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+
+            local raycastResult = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+            if raycastResult and raycastResult.Instance == platform then
+                -- Гравець стоїть на платформі
+                lastTouch = tick()
+            end
+
+            -- Якщо пройшло більше 10 секунд після того, як гравець стояв — видалити
+            if tick() - lastTouch > 10 then
+                platform:Destroy()
+                conn:Disconnect()
+            end
+        end)
     end
-end)
+})
+
+
+
 
 -- Load config
 Rayfield:LoadConfiguration()
