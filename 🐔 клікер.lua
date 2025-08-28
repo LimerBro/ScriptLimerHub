@@ -24,8 +24,8 @@ local toggleButton = Instance.new("TextButton", gui)
 toggleButton.Size = UDim2.new(0, 100, 0, 40)
 toggleButton.Position = UDim2.new(0, 10, 0, 10)
 toggleButton.Text = "Меню"
-toggleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-toggleButton.TextColor3 = Color3.new(1,1,1)
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+toggleButton.TextColor3 = Color3.new(0,225,0)
 local tbCorner = Instance.new("UICorner", toggleButton)
 tbCorner.CornerRadius = UDim.new(0, 8)
 
@@ -37,6 +37,7 @@ toggleButton.MouseButton1Click:Connect(function()
 end)
 
 -- Функція створення кнопок
+
 local function createButton(name, order, callback)
 	local btn = Instance.new("TextButton", frame)
 	btn.Size = UDim2.new(0, 200, 0, 40)
@@ -102,3 +103,21 @@ end)
 createButton("7. Купити Удачу", 6, function()
 	player.Data.Gamepasses.Lucky.Value = true
 end)
+-- Автояйце
+local autoClick = false
+createButton("8. Авто Яйце", 7, function()
+	autoClick = not autoClick
+	if autoClick then
+		spawn(function()
+			while autoClick do
+				game:GetService("ReplicatedStorage").Remotes.Egg:InvokeServer("Stone Egg",3)
+				task.wait(0.1)
+			end
+		end)
+	end
+end)
+-- Купити двойной клік
+createButton("9. Купити х2 клік", 8, function()
+	player.Data.Gamepasses.DoubleCurrency = true
+end)
+
