@@ -366,7 +366,7 @@ local function createEggMenu()
     local eggTypes = {
         "Starter Egg", "Beginner Egg", "Advanced Egg", "Release Egg", 
         "Sand Egg", "Beach Egg", "Pink Egg", "Candy Egg",
-        "Toxic Egg", "Nuclear Egg", "Graveyard Egg", "Stone Egg"
+        "Toxic Egg", "Nuclear Egg", "Graveyard Egg", "Stone Egg", "Teal 10k Visits Egg"
     }
     
     for i, eggName in ipairs(eggTypes) do
