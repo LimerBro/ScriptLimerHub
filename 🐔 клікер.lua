@@ -404,7 +404,7 @@ local function createEggMenu()
                 
                 spawn(function()
                     while autoEggActive and activeEggButtons[eggName] do
-                        game:GetService("ReplicatedStorage").Remotes.Egg:InvokeServer(eggName, 3)
+                        game:GetService("ReplicatedStorage").Remotes.Egg:InvokeServer(eggName, 40)
                         task.wait(0.1)
                     end
                 end)
