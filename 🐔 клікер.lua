@@ -5,7 +5,7 @@ local allowedGameId = 93004918890416
 if game.PlaceId ~= allowedGameId then
     return -- Якщо не та гра, скрипт не виконується
 end
-
+--print("Hello, World!")
 -- If an old hub already exists, remove it
 local player = game.Players.LocalPlayer
 if player.PlayerGui:FindFirstChild("HubMenu") then
@@ -17,17 +17,40 @@ local gui = Instance.new("ScreenGui", player.PlayerGui)
 gui.Name = "HubMenu"
 gui.ResetOnSpawn = false
 
+-- Gradient function
+local function addGradient(parent, color1, color2)
+    local gradient = Instance.new("UIGradient", parent)
+    gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, color1),
+    ColorSequenceKeypoint.new(1, color2)
+    })
+    gradient.Rotation = 90
+    return gradient
+end
+
 -- Create performance stats frame
 local statsFrame = Instance.new("Frame", gui)
 statsFrame.Name = "PerformanceStats"
 statsFrame.Size = UDim2.new(0, 200, 0, 80)
 statsFrame.Position = UDim2.new(1, -210, 0, 10)
-statsFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-statsFrame.BackgroundTransparency = 0.3
+statsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+statsFrame.BackgroundTransparency = 0.15
 statsFrame.BorderSizePixel = 0
 
 local statsCorner = Instance.new("UICorner", statsFrame)
-statsCorner.CornerRadius = UDim.new(0, 8)
+statsCorner.CornerRadius = UDim.new(0, 10)
+
+-- Add gradient and shadow
+addGradient(statsFrame, Color3.fromRGB(40, 40, 60), Color3.fromRGB(20, 20, 30))
+
+local shadow = Instance.new("ImageLabel", statsFrame)
+shadow.Size = UDim2.new(1, 20, 1, 20)
+shadow.Position = UDim2.new(0, -10, 0, -10)
+shadow.Image = "rbxassetid://1316045217"
+shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+shadow.ImageTransparency = 0.5
+shadow.BackgroundTransparency = 1
+shadow.ZIndex = -1
 
 -- FPS counter
 local fpsLabel = Instance.new("TextLabel", statsFrame)
@@ -35,35 +58,25 @@ fpsLabel.Name = "FPS"
 fpsLabel.Size = UDim2.new(1, -10, 0, 20)
 fpsLabel.Position = UDim2.new(0, 5, 0, 5)
 fpsLabel.Text = "FPS: 0"
-fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 180)
 fpsLabel.BackgroundTransparency = 1
-fpsLabel.Font = Enum.Font.GothamMedium
+fpsLabel.Font = Enum.Font.GothamBold
 fpsLabel.TextSize = 14
 fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Ping counter
-local pingLabel = Instance.new("TextLabel", statsFrame)
+local pingLabel = fpsLabel:Clone()
+pingLabel.Parent = statsFrame
 pingLabel.Name = "Ping"
-pingLabel.Size = UDim2.new(1, -10, 0, 20)
 pingLabel.Position = UDim2.new(0, 5, 0, 25)
 pingLabel.Text = "Ping: 0ms"
-pingLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-pingLabel.BackgroundTransparency = 1
-pingLabel.Font = Enum.Font.GothamMedium
-pingLabel.TextSize = 14
-pingLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 -- Real time clock
-local timeLabel = Instance.new("TextLabel", statsFrame)
+local timeLabel = fpsLabel:Clone()
+timeLabel.Parent = statsFrame
 timeLabel.Name = "Time"
-timeLabel.Size = UDim2.new(1, -10, 0, 20)
 timeLabel.Position = UDim2.new(0, 5, 0, 45)
 timeLabel.Text = "00:00:00"
-timeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-timeLabel.BackgroundTransparency = 1
-timeLabel.Font = Enum.Font.GothamMedium
-timeLabel.TextSize = 14
-timeLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 -- FPS calculation
 local function calculateFPS()
@@ -85,7 +98,6 @@ end
 
 local getFPS = calculateFPS()
 
--- Ping calculation
 local function getPing()
     local stats = game:GetService("Stats")
     local network = stats.Network
@@ -94,18 +106,84 @@ end
 
 -- Update performance stats
 game:GetService("RunService").RenderStepped:Connect(function()
-    -- Update FPS
     fpsLabel.Text = "FPS: " .. getFPS()
-    
-    -- Update Ping (every second to avoid performance issues)
-    if math.random(1, 60) == 1 then -- Update approximately once per second
+    if math.random(1, 60) == 1 then
         pingLabel.Text = "Ping: " .. getPing() .. "ms"
     end
-    
-    -- Update real time
     local currentTime = os.date("*t")
     timeLabel.Text = string.format("%02d:%02d:%02d", currentTime.hour, currentTime.min, currentTime.sec)
 end)
+
+-- Main frame
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 260, 0, 420)
+frame.Position = UDim2.new(0.5, -130, 0.5, -210)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+
+local corner = Instance.new("UICorner", frame)
+corner.CornerRadius = UDim.new(0, 14)
+addGradient(frame, Color3.fromRGB(50, 50, 90), Color3.fromRGB(25, 25, 40))
+
+-- Shadow for frame
+local frameShadow = shadow:Clone()
+frameShadow.Parent = frame
+
+-- Scroll
+local scroll = Instance.new("ScrollingFrame", frame)
+scroll.Size = UDim2.new(1, -10, 1, -10)
+scroll.Position = UDim2.new(0, 5, 0, 5)
+scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+scroll.ScrollBarThickness = 6
+scroll.BackgroundTransparency = 1
+
+local layout = Instance.new("UIListLayout", scroll)
+layout.Padding = UDim.new(0, 10)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+end)
+
+-- Toggle button
+local toggleButton = Instance.new("TextButton", gui)
+toggleButton.Size = UDim2.new(0, 110, 0, 42)
+toggleButton.Position = UDim2.new(0, 10, 0, 10)
+toggleButton.Text = "☰ Menu"
+toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+toggleButton.TextColor3 = Color3.fromRGB(255, 230, 180)
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextSize = 16
+toggleButton.Draggable = true
+ 
+local tbCorner = Instance.new("UICorner", toggleButton)
+tbCorner.CornerRadius = UDim.new(0, 10)
+
+addGradient(toggleButton, Color3.fromRGB(255, 230, 120), Color3.fromRGB(150, 150, 50))
+
+local opened = true
+toggleButton.MouseButton1Click:Connect(function()
+    opened = not opened
+    if opened then
+        frame:TweenPosition(UDim2.new(0.5, -130, 0.5, -210), "Out", "Quart", 0.4, true)
+    else
+        frame:TweenPosition(UDim2.new(0.5, -130, 1.5, 0), "In", "Quart", 0.4, true)
+    end
+end)
+
+-- Title
+local titleLabel = Instance.new("TextLabel", scroll)
+titleLabel.Size = UDim2.new(1, -20, 0, 40)
+titleLabel.LayoutOrder = 0
+titleLabel.Text = "🐔 Chicken Clicker 2 🥚"
+titleLabel.TextColor3 = Color3.fromRGB(255, 230, 180)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextScaled = true
+titleLabel.TextStrokeTransparency = 0.4
+titleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 
 -- Зберігаємо стан кнопок
 local buttonStates = {}
@@ -135,72 +213,12 @@ local function showNotification(text)
     delay(5, function()
         if notification then
             notification:TweenPosition(UDim2.new(1, -310, 1, 10), "Out", "Quad", 0.5, true, 
-                function()
-                    notification:Destroy()
-                end)
+            function()
+                notification:Destroy()
+            end)
         end
     end)
 end
-
--- Main frame (container)
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 250, 0, 400)
-frame.Position = UDim2.new(0.5, -125, 0.5, -200)
-frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
-
--- Rounded corners
-local corner = Instance.new("UICorner", frame)
-corner.CornerRadius = UDim.new(0, 12)
-
--- Scrollable area
-local scroll = Instance.new("ScrollingFrame", frame)
-scroll.Size = UDim2.new(1, -10, 1, -10)
-scroll.Position = UDim2.new(0, 5, 0, 5)
-scroll.CanvasSize = UDim2.new(0, 0, 0, 0) -- will update automatically
-scroll.ScrollBarThickness = 6
-scroll.BackgroundTransparency = 1
-
-local layout = Instance.new("UIListLayout", scroll)
-layout.Padding = UDim.new(0, 10)
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-
--- Auto-update CanvasSize for scrolling
-layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
-end)
-
--- Toggle button
-local toggleButton = Instance.new("TextButton", gui)
-toggleButton.Size = UDim2.new(0, 100, 0, 40)
-toggleButton.Position = UDim2.new(0, 10, 0, 10)
-toggleButton.Text = "Menu"
-toggleButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-local tbCorner = Instance.new("UICorner", toggleButton)
-tbCorner.CornerRadius = UDim.new(0, 8)
-toggleButton.Draggable = true
-
-local opened = true
-toggleButton.MouseButton1Click:Connect(function()
-    opened = not opened
-    frame.Visible = opened
-end)
-
--- Label "Chicken Clicker 2" above buttons
-local titleLabel = Instance.new("TextLabel", scroll)
-titleLabel.Size = UDim2.new(1, -20, 0, 40)
-titleLabel.LayoutOrder = 0
-titleLabel.Text = "Chicken Clicker 2"
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.TextScaled = true
-titleLabel.TextStrokeTransparency = 0.5
-titleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-titleLabel.TextYAlignment = Enum.TextYAlignment.Center
 
 -- Function to create buttons
 local function createButton(name, order, callback)
@@ -208,14 +226,16 @@ local function createButton(name, order, callback)
     btn.Size = UDim2.new(1, -20, 0, 40)
     btn.LayoutOrder = order
     btn.Text = name
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+    btn.TextColor3 = Color3.fromRGB(255, 230, 180)
     btn.AutoButtonColor = true
     btn.Name = name
-
+    
     local btnCorner = Instance.new("UICorner", btn)  
-    btnCorner.CornerRadius = UDim.new(0, 8)  
-
+    btnCorner.CornerRadius = UDim.new(0, 8)
+    
+    addGradient(btn, Color3.fromRGB(255, 230, 120), Color3.fromRGB(150, 150, 50))
+    
     btn.MouseButton1Click:Connect(function()
         local newState = callback()
         if newState ~= nil then
@@ -224,14 +244,14 @@ local function createButton(name, order, callback)
                 btn.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
                 showNotification("Активовано: " .. name)
             else
-                btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                btn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
                 showNotification("Вимкнено: " .. name)
             end
         else
             showNotification("Активовано: " .. name)
         end
     end)
-
+    
     return btn
 end
 
@@ -271,16 +291,15 @@ createButton("Auto Click", 1, function()
     return autoClick
 end)
 
-
-createButton("Teleport Lobby 1", 3, function()
+createButton("Teleport Lobby 1", 2, function()
     player.Character:MoveTo(Vector3.new(245.6, 15.5, 719.0))
 end)
 
-createButton("Teleport Lobby 2", 4, function()
+createButton("Teleport Lobby 2", 3, function()
     player.Character:MoveTo(Vector3.new(312.8, 31.5, 949.7))
 end)
 
-createButton(" Hide Pets", 5, function()
+createButton("Hide Pets", 4, function()
     local playerPets = workspace:WaitForChild("PlayerPets")
     for _, obj in pairs(playerPets:GetChildren()) do
         obj:Destroy()
@@ -290,14 +309,14 @@ createButton(" Hide Pets", 5, function()
     end)
 end)
 
-createButton("Toggle Game UI", 6, function()
+createButton("Toggle Game UI", 5, function()
     local gameUI = player.PlayerGui:FindFirstChild("GameUI")
     if gameUI and gameUI:FindFirstChild("Popups") then
         gameUI.Popups.Visible = not gameUI.Popups.Visible
     end
 end)
 
-createButton("Buy Luck", 7, function()
+createButton("Buy Luck", 6, function()
     player.Data.Gamepasses.Lucky.Value = true
 end)
 
@@ -331,7 +350,7 @@ local function createEggMenu()
     eggMenuFrame = Instance.new("Frame", gui)
     eggMenuFrame.Size = UDim2.new(0, 200, 0, 350)
     eggMenuFrame.Position = UDim2.new(0.5, 150, 0.5, -175)
-    eggMenuFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    eggMenuFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
     eggMenuFrame.BorderSizePixel = 0
     eggMenuFrame.Active = true
     eggMenuFrame.Draggable = true
@@ -339,10 +358,12 @@ local function createEggMenu()
     local corner = Instance.new("UICorner", eggMenuFrame)
     corner.CornerRadius = UDim.new(0, 12)
     
+    addGradient(eggMenuFrame, Color3.fromRGB(50, 50, 90), Color3.fromRGB(25, 25, 40))
+    
     local title = Instance.new("TextLabel", eggMenuFrame)
     title.Size = UDim2.new(1, 0, 0, 30)
     title.Text = "Виберіть яйце"
-    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextColor3 = Color3.fromRGB(255, 230, 180)
     title.BackgroundTransparency = 1
     title.Font = Enum.Font.GothamBold
     title.TextScaled = true
@@ -364,9 +385,9 @@ local function createEggMenu()
     
     -- Список яєць
     local eggTypes = {
-        "Starter Egg", "Beginner Egg", "Advanced Egg", "Release Egg", 
-        "Sand Egg", "Beach Egg", "Pink Egg", "Candy Egg",
-        "Toxic Egg", "Nuclear Egg", "Graveyard Egg", "Stone Egg", "Teal 10k Visits Egg", "Purple And Yellow 10k Visits Egg"
+    "Starter Egg", "Beginner Egg", "Advanced Egg", "Release Egg", 
+    "Sand Egg", "Beach Egg", "Pink Egg", "Candy Egg",
+    "Toxic Egg", "Nuclear Egg", "Graveyard Egg", "Stone Egg", "Teal 10k Visits Egg", "Purple And Yellow 10k Visits Egg"
     }
     
     for i, eggName in ipairs(eggTypes) do
@@ -374,24 +395,26 @@ local function createEggMenu()
         btn.Size = UDim2.new(1, -10, 0, 30)
         btn.LayoutOrder = i
         btn.Text = eggName
-        btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+        btn.TextColor3 = Color3.fromRGB(255, 230, 180)
         btn.AutoButtonColor = true
         btn.Name = eggName
         
         local btnCorner = Instance.new("UICorner", btn)  
         btnCorner.CornerRadius = UDim.new(0, 6)
         
+        addGradient(btn, Color3.fromRGB(255, 230, 120), Color3.fromRGB(150, 150, 80))
+        
         btn.MouseButton1Click:Connect(function()
             if activeEggButtons[eggName] then
                 -- Якщо кнопка вже активна, вимикаємо
                 activeEggButtons[eggName] = nil
-                btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                btn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
                 showNotification("Зупинено: " .. eggName)
             else
                 -- Вимикаємо всі інші кнопки
                 for name, eggBtn in pairs(activeEggButtons) do
-                    eggBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+                    eggBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
                 end
                 activeEggButtons = {}
                 
@@ -426,7 +449,7 @@ local function createEggMenu()
     
     stopBtn.MouseButton1Click:Connect(function()
         stopAllEggOpening()
-    end)
+    end) 
     
     -- Кнопка закриття
     local closeBtn = Instance.new("TextButton", eggMenuFrame)
@@ -446,15 +469,15 @@ local function createEggMenu()
     end)
 end
 
-createButton(" Auto Egg", 8, createEggMenu)
+createButton("Auto Egg", 7, createEggMenu)
 
-createButton("Buy x2 Click", 9, function()
+createButton("Buy x2 Click", 8, function()
     player.Data.Gamepasses.DoubleCurrency.Value = true
 end)
 
--- 11. Anti-AFK
+-- Anti-AFK
 local antiAFK = false
-createButton(" Anti-AFK", 11, function()
+createButton("Anti-AFK", 9, function()
     antiAFK = not antiAFK
     if antiAFK then
         local VirtualUser = game:GetService("VirtualUser")
