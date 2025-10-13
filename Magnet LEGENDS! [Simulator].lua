@@ -23,19 +23,17 @@ local Window = Rayfield:CreateWindow({
 	}
 })
 
+-- // Welcome Notification (один раз при запуску)
+Rayfield:Notify({
+	Title = "Welcome!",
+	Content = "Welcome, " .. player.Name .. " to Magnet Legends Simulator",
+	Duration = 3
+})
+
 -- Tabs
 local MainTab = Window:CreateTab("Main", "Settings")
 local TpTab = Window:CreateTab("TP Lobby", "Map")
 local EggTab = Window:CreateTab("Open Egg", "Egg")
-
--- Notification
-local function showNotification(text)
-	Rayfield:Notify({
-		Title = "LimerHub",
-		Content = text,
-		Duration = 3
-	})
-end
 
 ------------------------------------------------
 -- 💰 AUTO SELL через firetouchinterest
@@ -49,7 +47,7 @@ MainTab:CreateToggle({
 	Callback = function(state)
 		autoSell = state
 		if autoSell then
-			showNotification("Auto Sell ON")
+			Rayfield:Notify({Title="Auto Sell", Content="Auto Sell ON", Duration=2})
 			task.spawn(function()
 				local character = player.Character or player.CharacterAdded:Wait()
 				local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
@@ -65,7 +63,7 @@ MainTab:CreateToggle({
 				end
 			end)
 		else
-			showNotification("Auto Sell OFF")
+			Rayfield:Notify({Title="Auto Sell", Content="Auto Sell OFF", Duration=2})
 		end
 	end
 })
@@ -82,7 +80,7 @@ MainTab:CreateToggle({
 	Callback = function(state)
 		autoCoconut = state
 		if autoCoconut then
-			showNotification("Auto Coconut ON")
+			Rayfield:Notify({Title="Auto Coconut", Content="Auto Coconut ON", Duration=2})
 			task.spawn(function()
 				while autoCoconut do
 					pcall(function()
@@ -92,13 +90,13 @@ MainTab:CreateToggle({
 				end
 			end)
 		else
-			showNotification("Auto Coconut OFF")
+			Rayfield:Notify({Title="Auto Coconut", Content="Auto Coconut OFF", Duration=2})
 		end
 	end
 })
 
 ------------------------------------------------
--- 🏅 AUTO CONVERT COINS → GOLD (перемикач)
+-- 🏅 AUTO CONVERT COINS → GOLD
 ------------------------------------------------
 local autoConvert = false
 
@@ -109,7 +107,7 @@ MainTab:CreateToggle({
 	Callback = function(state)
 		autoConvert = state
 		if autoConvert then
-			showNotification("Auto Convert ON 🪙")
+			Rayfield:Notify({Title="Auto Convert", Content="Auto Convert ON 🪙", Duration=2})
 			task.spawn(function()
 				while autoConvert do
 					pcall(function()
@@ -117,16 +115,48 @@ MainTab:CreateToggle({
 							Remotes.FinishedSmelt:FireServer("Gold" .. i)
 						end
 					end)
-					task.wait(0.1) -- інтервал конвертації (можна змінити)
+					task.wait(0.1)
 				end
 			end)
 		else
-			showNotification("Auto Convert OFF ❌")
+			Rayfield:Notify({Title="Auto Convert", Content="Auto Convert OFF ❌", Duration=2})
 		end
 	end
 })
+
 ------------------------------------------------
--- 🌀 TELEPORTS (в правильному порядку)
+-- VEGETABLE FARM
+------------------------------------------------
+MainTab:CreateSection("Vegetable Farm")
+MainTab:CreateButton({
+	Name = "🪴 Plant Vegetables (All Plots)",
+	Callback = function()
+		if not Remotes then return Rayfield:Notify({Title="Error", Content="Remotes not found.", Duration=2}) end
+		for i = 1, 8 do
+			pcall(function()
+				Remotes.PlantPlant:FireServer("Plot" .. i)
+			end)
+			task.wait(0.08)
+		end
+		Rayfield:Notify({Title="Vegetable Farm", Content="All plots planted.", Duration=2})
+	end
+})
+MainTab:CreateButton({
+	Name = "🧺 Collect Vegetables (All Plots)",
+	Callback = function()
+		if not Remotes then return Rayfield:Notify({Title="Error", Content="Remotes not found.", Duration=2}) end
+		for i = 1, 8 do
+			pcall(function()
+				Remotes.CollectFruit:FireServer("Plot" .. i)
+			end)
+			task.wait(0.08)
+		end
+		Rayfield:Notify({Title="Vegetable Farm", Content="All plots collected.", Duration=2})
+	end
+})
+
+------------------------------------------------
+-- 🌀 TELEPORTS
 ------------------------------------------------
 local orderedTPs = {
 	["🏠 Spawn"] = CFrame.new(-510.9, -220.9, 577.4),
@@ -163,13 +193,13 @@ for _, name in ipairs({
 				local TeleportEffect = player:WaitForChild("TeleportEffect")
 				TeleportEffect:Fire(cf)
 			end)
-			showNotification("Teleported to " .. name)
+			Rayfield:Notify({Title="Teleport", Content="Teleported to " .. name, Duration=2})
 		end
 	})
 end
 
 ------------------------------------------------
--- 🥚 OPEN EGG (повністю відсортовано)
+-- 🥚 OPEN EGG
 ------------------------------------------------
 local eggList = {
 	{ name = "Basic",       label = "1 Basic | 25 💸" },
@@ -197,7 +227,7 @@ for _, egg in ipairs(eggList) do
 			if toggleState then
 				Rayfield:Notify({
 					Title = "🥚 Auto Hatch",
-					Content = "Відкривається: " .. egg.name,
+					Content = "Opening: " .. egg.name,
 					Duration = 2
 				})
 				task.spawn(function()
@@ -211,7 +241,7 @@ for _, egg in ipairs(eggList) do
 			else
 				Rayfield:Notify({
 					Title = "🥚 Auto Hatch",
-					Content = "Зупинено: " .. egg.name,
+					Content = "Stopped: " .. egg.name,
 					Duration = 2
 				})
 			end
