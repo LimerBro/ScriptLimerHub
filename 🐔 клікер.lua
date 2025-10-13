@@ -5,489 +5,160 @@ local allowedGameId = 93004918890416
 if game.PlaceId ~= allowedGameId then
     return -- Якщо не та гра, скрипт не виконується
 end
---print("Hello, World!")
--- If an old hub already exists, remove it
-local player = game.Players.LocalPlayer
-if player.PlayerGui:FindFirstChild("HubMenu") then
-    player.PlayerGui.HubMenu:Destroy()
-end
+-- // Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+local Workspace = game:GetService("Workspace")
 
--- Create main GUI
-local gui = Instance.new("ScreenGui", player.PlayerGui)
-gui.Name = "HubMenu"
-gui.ResetOnSpawn = false
+-- // UI Library
+local Rayfield = loadstring(game:HttpGet('https://limerbro.github.io/Roblox-Limer/rayfield.lua'))()
 
--- Gradient function
-local function addGradient(parent, color1, color2)
-    local gradient = Instance.new("UIGradient", parent)
-    gradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, color1),
-    ColorSequenceKeypoint.new(1, color2)
-    })
-    gradient.Rotation = 90
-    return gradient
-end
+-- // Window
+local Window = Rayfield:CreateWindow({
+	Name = "🔋 LimerHub > Chicken Clicker 2",
+	Icon = 105792205668394,
+	LoadingTitle = "Loading...",
+	LoadingSubtitle = "By LimerBoy",
+	Theme = "BlackYellowTheme",
+	ToggleUIKeybind = Enum.KeyCode.K,
+	ConfigurationSaving = {
+		Enabled = true,
+		FolderName = "ZombieHub",
+		FileName = "Config"
+	}
+})
 
--- Create performance stats frame
-local statsFrame = Instance.new("Frame", gui)
-statsFrame.Name = "PerformanceStats"
-statsFrame.Size = UDim2.new(0, 200, 0, 80)
-statsFrame.Position = UDim2.new(1, -210, 0, 10)
-statsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
-statsFrame.BackgroundTransparency = 0.15
-statsFrame.BorderSizePixel = 0
+------------------------------------------------------------
+-- ⚙️ MAIN TAB
+------------------------------------------------------------
+local MainTab = Window:CreateTab("⚙️ Main", "Settings")
 
-local statsCorner = Instance.new("UICorner", statsFrame)
-statsCorner.CornerRadius = UDim.new(0, 10)
-
--- Add gradient and shadow
-addGradient(statsFrame, Color3.fromRGB(40, 40, 60), Color3.fromRGB(20, 20, 30))
-
-local shadow = Instance.new("ImageLabel", statsFrame)
-shadow.Size = UDim2.new(1, 20, 1, 20)
-shadow.Position = UDim2.new(0, -10, 0, -10)
-shadow.Image = "rbxassetid://1316045217"
-shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-shadow.ImageTransparency = 0.5
-shadow.BackgroundTransparency = 1
-shadow.ZIndex = -1
-
--- FPS counter
-local fpsLabel = Instance.new("TextLabel", statsFrame)
-fpsLabel.Name = "FPS"
-fpsLabel.Size = UDim2.new(1, -10, 0, 20)
-fpsLabel.Position = UDim2.new(0, 5, 0, 5)
-fpsLabel.Text = "FPS: 0"
-fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 180)
-fpsLabel.BackgroundTransparency = 1
-fpsLabel.Font = Enum.Font.GothamBold
-fpsLabel.TextSize = 14
-fpsLabel.TextXAlignment = Enum.TextXAlignment.Left
-
--- Ping counter
-local pingLabel = fpsLabel:Clone()
-pingLabel.Parent = statsFrame
-pingLabel.Name = "Ping"
-pingLabel.Position = UDim2.new(0, 5, 0, 25)
-pingLabel.Text = "Ping: 0ms"
-
--- Real time clock
-local timeLabel = fpsLabel:Clone()
-timeLabel.Parent = statsFrame
-timeLabel.Name = "Time"
-timeLabel.Position = UDim2.new(0, 5, 0, 45)
-timeLabel.Text = "00:00:00"
-
--- FPS calculation
-local function calculateFPS()
-    local fps = 0
-    local lastTime = tick()
-    local frameCount = 0
-    
-    return function()
-        frameCount = frameCount + 1
-        local currentTime = tick()
-        if currentTime - lastTime >= 1 then
-            fps = math.floor(frameCount / (currentTime - lastTime))
-            frameCount = 0
-            lastTime = currentTime
-        end
-        return fps
-    end
-end
-
-local getFPS = calculateFPS()
-
-local function getPing()
-    local stats = game:GetService("Stats")
-    local network = stats.Network
-    return math.floor(network.ServerStatsItem["Data Ping"]:GetValue())
-end
-
--- Update performance stats
-game:GetService("RunService").RenderStepped:Connect(function()
-    fpsLabel.Text = "FPS: " .. getFPS()
-    if math.random(1, 60) == 1 then
-        pingLabel.Text = "Ping: " .. getPing() .. "ms"
-    end
-    local currentTime = os.date("*t")
-    timeLabel.Text = string.format("%02d:%02d:%02d", currentTime.hour, currentTime.min, currentTime.sec)
-end)
-
--- Main frame
-local frame = Instance.new("Frame", gui)
-frame.Size = UDim2.new(0, 260, 0, 420)
-frame.Position = UDim2.new(0.5, -130, 0.5, -210)
-frame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
-frame.BorderSizePixel = 0
-frame.Active = true
-frame.Draggable = true
-
-local corner = Instance.new("UICorner", frame)
-corner.CornerRadius = UDim.new(0, 14)
-addGradient(frame, Color3.fromRGB(50, 50, 90), Color3.fromRGB(25, 25, 40))
-
--- Shadow for frame
-local frameShadow = shadow:Clone()
-frameShadow.Parent = frame
-
--- Scroll
-local scroll = Instance.new("ScrollingFrame", frame)
-scroll.Size = UDim2.new(1, -10, 1, -10)
-scroll.Position = UDim2.new(0, 5, 0, 5)
-scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-scroll.ScrollBarThickness = 6
-scroll.BackgroundTransparency = 1
-
-local layout = Instance.new("UIListLayout", scroll)
-layout.Padding = UDim.new(0, 10)
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-
-layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
-end)
-
--- Toggle button
-local toggleButton = Instance.new("TextButton", gui)
-toggleButton.Size = UDim2.new(0, 110, 0, 42)
-toggleButton.Position = UDim2.new(0, 10, 0, 10)
-toggleButton.Text = "☰ Menu"
-toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-toggleButton.TextColor3 = Color3.fromRGB(255, 230, 180)
-toggleButton.Font = Enum.Font.GothamBold
-toggleButton.TextSize = 16
-toggleButton.Draggable = true
- 
-local tbCorner = Instance.new("UICorner", toggleButton)
-tbCorner.CornerRadius = UDim.new(0, 10)
-
-addGradient(toggleButton, Color3.fromRGB(255, 230, 120), Color3.fromRGB(150, 150, 50))
-
-local opened = true
-toggleButton.MouseButton1Click:Connect(function()
-    opened = not opened
-    if opened then
-        frame:TweenPosition(UDim2.new(0.5, -130, 0.5, -210), "Out", "Quart", 0.4, true)
-    else
-        frame:TweenPosition(UDim2.new(0.5, -130, 1.5, 0), "In", "Quart", 0.4, true)
-    end
-end)
-
--- Title
-local titleLabel = Instance.new("TextLabel", scroll)
-titleLabel.Size = UDim2.new(1, -20, 0, 40)
-titleLabel.LayoutOrder = 0
-titleLabel.Text = "🐔 Chicken Clicker 2 🥚"
-titleLabel.TextColor3 = Color3.fromRGB(255, 230, 180)
-titleLabel.BackgroundTransparency = 1
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.TextScaled = true
-titleLabel.TextStrokeTransparency = 0.4
-titleLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-
--- Зберігаємо стан кнопок
-local buttonStates = {}
-local activeEggButtons = {}
-
--- Notification system
-local function showNotification(text)
-    local notification = Instance.new("TextLabel")
-    notification.Text = "🔔 " .. text
-    notification.Size = UDim2.new(0, 300, 0, 40)
-    notification.Position = UDim2.new(1, -310, 1, -50)
-    notification.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    notification.TextColor3 = Color3.fromRGB(255, 255, 255)
-    notification.Font = Enum.Font.GothamMedium
-    notification.TextSize = 14
-    notification.AnchorPoint = Vector2.new(0, 1)
-    notification.Parent = gui
-    
-    local corner = Instance.new("UICorner", notification)
-    corner.CornerRadius = UDim.new(0, 8)
-    
-    -- Анімація появи
-    notification.Position = UDim2.new(1, -310, 1, 10)
-    notification:TweenPosition(UDim2.new(1, -310, 1, -50), "Out", "Quad", 0.5, true)
-    
-    -- Автоматичне видалення через 5 секунд
-    delay(5, function()
-        if notification then
-            notification:TweenPosition(UDim2.new(1, -310, 1, 10), "Out", "Quad", 0.5, true, 
-            function()
-                notification:Destroy()
-            end)
-        end
-    end)
-end
-
--- Function to create buttons
-local function createButton(name, order, callback)
-    local btn = Instance.new("TextButton", scroll)
-    btn.Size = UDim2.new(1, -20, 0, 40)
-    btn.LayoutOrder = order
-    btn.Text = name
-    btn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-    btn.TextColor3 = Color3.fromRGB(255, 230, 180)
-    btn.AutoButtonColor = true
-    btn.Name = name
-    
-    local btnCorner = Instance.new("UICorner", btn)  
-    btnCorner.CornerRadius = UDim.new(0, 8)
-    
-    addGradient(btn, Color3.fromRGB(255, 230, 120), Color3.fromRGB(150, 150, 50))
-    
-    btn.MouseButton1Click:Connect(function()
-        local newState = callback()
-        if newState ~= nil then
-            buttonStates[name] = newState
-            if newState then
-                btn.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
-                showNotification("Активовано: " .. name)
-            else
-                btn.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-                showNotification("Вимкнено: " .. name)
-            end
-        else
-            showNotification("Активовано: " .. name)
-        end
-    end)
-    
-    return btn
-end
-
--- Speed Hack (постійний)
-local SPEED = 60
-local function setSpeed(character)  
-    local humanoid = character:FindFirstChildOfClass("Humanoid")  
-    if humanoid then  
-        humanoid.WalkSpeed = SPEED  
-    end  
-end
-
--- Застосувати спідхак одразу
-if player.Character then
-    setSpeed(player.Character)
-end
-
-player.CharacterAdded:Connect(function(char)
-    char:WaitForChild("Humanoid")
-    setSpeed(char)
-end)
-
-showNotification("Спідхак активовано: швидкість " .. SPEED)
-
--- Buttons
+-- 🔁 Auto Clicker
 local autoClick = false
-createButton("Auto Click", 1, function()
-    autoClick = not autoClick
-    if autoClick then
-        spawn(function()
-            while autoClick do
-                game:GetService("ReplicatedStorage").Remotes.Clicker:FireServer()
-                task.wait(0)
-            end
-        end)
-    end
-    return autoClick
-end)
+MainTab:CreateToggle({
+	Name = "🖱️ Auto Clicker",
+	CurrentValue = false,
+	Flag = "AutoClicker",
+	Callback = function(Value)
+		autoClick = Value
+		task.spawn(function()
+			while autoClick do
+				pcall(function()
+					Remotes.Clicker:FireServer()
+				end)
+				task.wait(0.1)
+			end
+		end)
+	end,
+})
 
-createButton("Teleport Lobby 1", 2, function()
-    player.Character:MoveTo(Vector3.new(245.6, 15.5, 719.0))
-end)
+-- 🎃 Halloween Auto Click
+local autoHalloween = false
+MainTab:CreateToggle({
+	Name = "🎃 Auto Click (Halloween Event)",
+	CurrentValue = false,
+	Flag = "AutoHalloweenClick",
+	Callback = function(Value)
+		autoHalloween = Value
+		task.spawn(function()
+			while autoHalloween do
+				pcall(function()
+					Remotes.PileClickEvent:FireServer()
+				end)
+				task.wait(0.1)
+			end
+		end)
+	end,
+})
 
-createButton("Teleport Lobby 2", 3, function()
-    player.Character:MoveTo(Vector3.new(312.8, 31.5, 949.7))
-end)
+-- 🔕 Hide Popups
+MainTab:CreateToggle({
+	Name = "❌ Hide Popups",
+	CurrentValue = false,
+	Flag = "HidePopups",
+	Callback = function(Value)
+		local popups = player.PlayerGui:FindFirstChild("GameUI") and player.PlayerGui.GameUI:FindFirstChild("Popups")
+		if popups then
+			popups.Visible = not Value
+		end
+	end,
+})
 
-createButton("Hide Pets", 4, function()
-    local playerPets = workspace:WaitForChild("PlayerPets")
-    for _, obj in pairs(playerPets:GetChildren()) do
-        obj:Destroy()
-    end
-    playerPets.ChildAdded:Connect(function(child)
-        child:Destroy()
-    end)
-end)
+-- 🐾 Delete All Pets (Button)
+MainTab:CreateButton({
+	Name = "🐾 Delete All Pets (workspace.PlayerPets)",
+	Callback = function()
+		for _, folder in pairs(Workspace:WaitForChild("PlayerPets"):GetChildren()) do
+			folder:Destroy()
+		end
+		Rayfield:Notify({
+			Title = "LimerHub",
+			Content = "✅ All pets have been deleted from workspace.PlayerPets.",
+			Duration = 3
+		})
+	end,
+})
 
-createButton("Toggle Game UI", 5, function()
-    local gameUI = player.PlayerGui:FindFirstChild("GameUI")
-    if gameUI and gameUI:FindFirstChild("Popups") then
-        gameUI.Popups.Visible = not gameUI.Popups.Visible
-    end
-end)
+------------------------------------------------------------
+-- 🌀 TELEPORT TAB
+------------------------------------------------------------
+local TpTab = Window:CreateTab("🌀 Teleports", "Map")
 
-createButton("Buy Luck", 6, function()
-    player.Data.Gamepasses.Lucky.Value = true
-end)
+local tpLocations = {
+	["🌿 Nature Obby"] = Vector3.new(245.2, 15.8, 719.6),
+	["🍭 Candy Obby"] = Vector3.new(309.7, 31.8, 949.4),
+	["😈 Evil Obby"] = Vector3.new(242.2, 15.8, 1179.9),
+	["😇 Good Obby"] = Vector3.new(243.5, 15.8, 1445.6)
+}
 
--- Auto Egg Menu
-local eggMenuOpen = false
-local eggMenuFrame = nil
-local autoEggActive = false
-local currentEggType = ""
-
-local function stopAllEggOpening()
-    autoEggActive = false
-    -- Скидаємо колір всіх кнопок яєць
-    if eggMenuFrame then
-        for _, btn in pairs(activeEggButtons) do
-            btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-        end
-    end
-    activeEggButtons = {}
-    showNotification("Зупинено всі авто-відкриття яєць")
+for name, pos in pairs(tpLocations) do
+	TpTab:CreateButton({
+		Name = name,
+		Callback = function()
+			player.Character:PivotTo(CFrame.new(pos))
+		end,
+	})
 end
 
-local function createEggMenu()
-    if eggMenuFrame then
-        eggMenuFrame:Destroy()
-        eggMenuFrame = nil
-        eggMenuOpen = false
-        return
-    end
-    
-    eggMenuOpen = true
-    eggMenuFrame = Instance.new("Frame", gui)
-    eggMenuFrame.Size = UDim2.new(0, 200, 0, 350)
-    eggMenuFrame.Position = UDim2.new(0.5, 150, 0.5, -175)
-    eggMenuFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
-    eggMenuFrame.BorderSizePixel = 0
-    eggMenuFrame.Active = true
-    eggMenuFrame.Draggable = true
-    
-    local corner = Instance.new("UICorner", eggMenuFrame)
-    corner.CornerRadius = UDim.new(0, 12)
-    
-    addGradient(eggMenuFrame, Color3.fromRGB(50, 50, 90), Color3.fromRGB(25, 25, 40))
-    
-    local title = Instance.new("TextLabel", eggMenuFrame)
-    title.Size = UDim2.new(1, 0, 0, 30)
-    title.Text = "Виберіть яйце"
-    title.TextColor3 = Color3.fromRGB(255, 230, 180)
-    title.BackgroundTransparency = 1
-    title.Font = Enum.Font.GothamBold
-    title.TextScaled = true
-    
-    local scroll = Instance.new("ScrollingFrame", eggMenuFrame)
-    scroll.Size = UDim2.new(1, -10, 1, -80)
-    scroll.Position = UDim2.new(0, 5, 0, 35)
-    scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-    scroll.ScrollBarThickness = 6
-    scroll.BackgroundTransparency = 1
-    
-    local layout = Instance.new("UIListLayout", scroll)
-    layout.Padding = UDim.new(0, 5)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    
-    layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        scroll.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
-    end)
-    
-    -- Список яєць
-    local eggTypes = {
-    "Starter Egg", "Beginner Egg", "Advanced Egg", "Release Egg", 
-    "Sand Egg", "Beach Egg", "Pink Egg", "Candy Egg",
-    "Toxic Egg", "Nuclear Egg", "Graveyard Egg", "Stone Egg", "Teal 10k Visits Egg", "Purple And Yellow 10k Visits Egg"
-    }
-    
-    for i, eggName in ipairs(eggTypes) do
-        local btn = Instance.new("TextButton", scroll)
-        btn.Size = UDim2.new(1, -10, 0, 30)
-        btn.LayoutOrder = i
-        btn.Text = eggName
-        btn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
-        btn.TextColor3 = Color3.fromRGB(255, 230, 180)
-        btn.AutoButtonColor = true
-        btn.Name = eggName
-        
-        local btnCorner = Instance.new("UICorner", btn)  
-        btnCorner.CornerRadius = UDim.new(0, 6)
-        
-        addGradient(btn, Color3.fromRGB(255, 230, 120), Color3.fromRGB(150, 150, 80))
-        
-        btn.MouseButton1Click:Connect(function()
-            if activeEggButtons[eggName] then
-                -- Якщо кнопка вже активна, вимикаємо
-                activeEggButtons[eggName] = nil
-                btn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
-                showNotification("Зупинено: " .. eggName)
-            else
-                -- Вимикаємо всі інші кнопки
-                for name, eggBtn in pairs(activeEggButtons) do
-                    eggBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
-                end
-                activeEggButtons = {}
-                
-                -- Активуємо поточну кнопку
-                activeEggButtons[eggName] = btn
-                btn.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
-                currentEggType = eggName
-                autoEggActive = true
-                showNotification("Авто-відкриття: " .. eggName)
-                
-                spawn(function()
-                    while autoEggActive and activeEggButtons[eggName] do
-                        game:GetService("ReplicatedStorage").Remotes.Egg:InvokeServer(eggName, 3)
-                        task.wait(0.1)
-                    end
-                end)
-            end
-        end)
-    end
-    
-    -- Кнопка зупинки всіх авто-відкриттів
-    local stopBtn = Instance.new("TextButton", eggMenuFrame)
-    stopBtn.Size = UDim2.new(1, -10, 0, 30)
-    stopBtn.Position = UDim2.new(0, 5, 1, -35)
-    stopBtn.Text = "STOP ALL"
-    stopBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
-    stopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    stopBtn.AutoButtonColor = true
-    
-    local stopCorner = Instance.new("UICorner", stopBtn)  
-    stopCorner.CornerRadius = UDim.new(0, 6)
-    
-    stopBtn.MouseButton1Click:Connect(function()
-        stopAllEggOpening()
-    end) 
-    
-    -- Кнопка закриття
-    local closeBtn = Instance.new("TextButton", eggMenuFrame)
-    closeBtn.Size = UDim2.new(0, 30, 0, 30)
-    closeBtn.Position = UDim2.new(1, -30, 0, 0)
-    closeBtn.Text = "X"
-    closeBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-    closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    
-    local btnCorner = Instance.new("UICorner", closeBtn)  
-    btnCorner.CornerRadius = UDim.new(0, 6)
-    
-    closeBtn.MouseButton1Click:Connect(function()
-        eggMenuFrame:Destroy()
-        eggMenuFrame = nil
-        eggMenuOpen = false
-    end)
+------------------------------------------------------------
+-- 🥚 EGG TAB
+------------------------------------------------------------
+local EggTab = Window:CreateTab("🥚 Eggs", "Egg")
+
+local eggsFolder = Workspace:WaitForChild("Map"):WaitForChild("Eggs")
+local eggToggles = {}
+
+for _, egg in pairs(eggsFolder:GetChildren()) do
+	if egg:IsA("Model") then
+		local eggName = egg.Name
+		eggToggles[eggName] = false
+
+		EggTab:CreateToggle({
+			Name = "🥚 Auto Open " .. eggName,
+			CurrentValue = false,
+			Flag = eggName .. "_AutoOpen",
+			Callback = function(Value)
+				eggToggles[eggName] = Value
+				task.spawn(function()
+					while eggToggles[eggName] do
+						pcall(function()
+							Remotes.Egg:InvokeServer(eggName, 3)
+						end)
+						task.wait(1)
+					end
+				end)
+			end,
+		})
+	end
 end
 
-createButton("Auto Egg", 7, createEggMenu)
-
-createButton("Buy x2 Click", 8, function()
-    player.Data.Gamepasses.DoubleCurrency.Value = true
-end)
-
--- Anti-AFK
-local antiAFK = false
-createButton("Anti-AFK", 9, function()
-    antiAFK = not antiAFK
-    if antiAFK then
-        local VirtualUser = game:GetService("VirtualUser")
-        spawn(function()
-            while antiAFK do
-                VirtualUser:CaptureController()
-                VirtualUser:ClickButton2(Vector2.new(0, 0))
-                task.wait(60)
-            end
-        end)
-    end
-    return antiAFK
-end)
+------------------------------------------------------------
+-- 🔔 Notification
+------------------------------------------------------------
+Rayfield:Notify({
+	Title = "LimerHub",
+	Content = "✅ Loaded successfully! Connected to Magnet LEGENDS!",
+	Duration = 4
+})
