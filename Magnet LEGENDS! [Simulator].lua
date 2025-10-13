@@ -24,9 +24,9 @@ local Window = Rayfield:CreateWindow({
 })
 
 -- Tabs
-local MainTab = Window:CreateTab("⚙️ Main", "Settings")
-local TpTab = Window:CreateTab("🌀 TP Lobby", "Map")
-local EggTab = Window:CreateTab("🥚 Open Egg", "Egg")
+local MainTab = Window:CreateTab("Main", "Settings")
+local TpTab = Window:CreateTab("TP Lobby", "Map")
+local EggTab = Window:CreateTab("Open Egg", "Egg")
 
 -- Notification
 local function showNotification(text)
@@ -36,7 +36,6 @@ local function showNotification(text)
 		Duration = 3
 	})
 end
-
 
 ------------------------------------------------
 -- 💰 AUTO SELL через firetouchinterest
@@ -51,7 +50,6 @@ MainTab:CreateToggle({
 		autoSell = state
 		if autoSell then
 			showNotification("Auto Sell ON")
-
 			task.spawn(function()
 				local character = player.Character or player.CharacterAdded:Wait()
 				local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
@@ -71,7 +69,6 @@ MainTab:CreateToggle({
 		end
 	end
 })
-
 
 ------------------------------------------------
 -- 🥥 AUTO COLLECT COCONUT
@@ -100,22 +97,34 @@ MainTab:CreateToggle({
 	end
 })
 
+------------------------------------------------
+-- 🏅 AUTO CONVERT COINS → GOLD (перемикач)
+------------------------------------------------
+local autoConvert = false
 
-------------------------------------------------
--- 🏅 CONVERT TO GOLD
-------------------------------------------------
-MainTab:CreateButton({
-	Name = "🏅 Convert Coins → Gold",
-	Description = "Для крафта 1 золотого слітка потрібно 1B монет 💰",
-	Callback = function()
-		pcall(function()
-			Remotes.FinishedSmelt:FireServer("Gold2")
-		end)
-		showNotification("1B coins converted to Gold Ingot 🪙")
+MainTab:CreateToggle({
+	Name = "🏅 Auto Convert Coins → Gold",
+	CurrentValue = false,
+	Flag = "AutoConvert",
+	Callback = function(state)
+		autoConvert = state
+		if autoConvert then
+			showNotification("Auto Convert ON 🪙")
+			task.spawn(function()
+				while autoConvert do
+					pcall(function()
+						for i = 1, 12 do
+							Remotes.FinishedSmelt:FireServer("Gold" .. i)
+						end
+					end)
+					task.wait(0.1) -- інтервал конвертації (можна змінити)
+				end
+			end)
+		else
+			showNotification("Auto Convert OFF ❌")
+		end
 	end
 })
-
-
 ------------------------------------------------
 -- 🌀 TELEPORTS (в правильному порядку)
 ------------------------------------------------
@@ -129,12 +138,13 @@ local orderedTPs = {
 	["❄️ Ice"] = CFrame.new(602.1, -220.8, -858.0),
 	["🌋 Volcano"] = CFrame.new(1121.4, -220.1, -949.2),
 	["⛏️ Mine"] = CFrame.new(1770.0, -287.0, -975.3),
+	["🎪 Carnival"] = CFrame.new(1601.3, -221.1, -1520.7),
 	["💎 VIP Zone"] = CFrame.new(112.8, -220.8, 792.5)
 }
 
 for _, name in ipairs({
 	"🏠 Spawn",
-	"🌾 Farm",
+	"🌾 Farm", 
 	"🍬 Candy Land",
 	"🏖️ Beach",
 	"🌊 Underwater",
@@ -142,14 +152,17 @@ for _, name in ipairs({
 	"❄️ Ice",
 	"🌋 Volcano",
 	"⛏️ Mine",
+	"🎪 Carnival",
 	"💎 VIP Zone"
 }) do
 	local cf = orderedTPs[name]
 	TpTab:CreateButton({
 		Name = name,
 		Callback = function()
-			local TeleportEffect = player:WaitForChild("TeleportEffect")
-			TeleportEffect:Fire(cf)
+			pcall(function()
+				local TeleportEffect = player:WaitForChild("TeleportEffect")
+				TeleportEffect:Fire(cf)
+			end)
 			showNotification("Teleported to " .. name)
 		end
 	})
@@ -158,25 +171,23 @@ end
 ------------------------------------------------
 -- 🥚 OPEN EGG (повністю відсортовано)
 ------------------------------------------------
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
 local eggList = {
-	{ name = "Basic",        label = "1 Basic | 25 💸" },
-	{ name = "Spotted",      label = "2 Spotted | 100 💸" },
-	{ name = "Farm",         label = "3 Farm | 500 💸" },
-	{ name = "Sweet",        label = "4 Sweet | 25k 💸" },
-	{ name = "Beach",        label = "5 Beach | 750k 💸" },
-	{ name = "Ocean",        label = "6 Ocean | 2.5m 💸" },
-	{ name = "Samurai",      label = "7 Samurai | 20m 💸" },
-	{ name = "Arctic",       label = "8 Arctic | 750m 💸" },
-	{ name = "Volcanic",     label = "9 Volcanic | 2.21b 💸" },
-	{ name = "Crystal",      label = "10 Crystal | 100 💰" },
-	{ name = "GoldCrystal",  label = "11 Gold Crystal | 3k 💰" }
+	{ name = "Basic",       label = "1 Basic | 25 💸" },
+	{ name = "Spotted",     label = "2 Spotted | 100 💸" },
+	{ name = "Farm",        label = "3 Farm | 500 💸" },
+	{ name = "Sweet",       label = "4 Sweet | 25k 💸" },
+	{ name = "Beach",       label = "5 Beach | 750k 💸" },
+	{ name = "Ocean",       label = "6 Ocean | 2.5m 💸" },
+	{ name = "Samurai",     label = "7 Samurai | 20m 💸" },
+	{ name = "Arctic",      label = "8 Arctic | 750m 💸" },
+	{ name = "Volcanic",    label = "9 Volcanic | 2.21b 💸" },
+	{ name = "Crystal",     label = "10 Crystal | 100 💰" },
+	{ name = "GoldCrystal", label = "11 Gold Crystal | 3k 💰" },
+	{ name = "Carnival",    label = "12 Carnival | 2k 💰" }
 }
 
 for _, egg in ipairs(eggList) do
 	local toggleState = false
-
 	EggTab:CreateToggle({
 		Name = egg.label,
 		CurrentValue = false,
