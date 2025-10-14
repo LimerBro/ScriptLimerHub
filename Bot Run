@@ -1,0 +1,348 @@
+-- 🧹 Remove old GUI
+if game:GetService("CoreGui"):FindFirstChild("RunnerGui") then
+	game:GetService("CoreGui").RunnerGui:Destroy()
+end
+
+-- 📁 Save file
+local saveFile = "runner_coords.txt"
+
+-- 🔄 Load saved coordinates
+local savedA, savedB
+if isfile and isfile(saveFile) then
+	local content = readfile(saveFile)
+	-- Перевірка на nil, щоб уникнути помилки при першому запуску
+	local matchA, matchB = content:match("(.+)\n(.+)")
+	savedA = matchA or ""
+	savedB = matchB or ""
+end
+
+-- 🎨 GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "RunnerGui"
+gui.Parent = game:GetService("CoreGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 280, 0, 250)
+frame.Position = UDim2.new(0.5, -140, 0.5, -125)
+frame.AnchorPoint = Vector2.new(0.5, 0.5)
+frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = frame
+
+-- Close button
+local closeButton = Instance.new("TextButton")
+closeButton.Text = "❌"
+closeButton.Size = UDim2.new(0, 25, 0, 25)
+closeButton.Position = UDim2.new(1, -30, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.TextSize = 20
+closeButton.Parent = frame
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = closeButton
+
+-- Minimize button
+local toggleMinimize = Instance.new("TextButton")
+toggleMinimize.Text = "🔺"
+toggleMinimize.Size = UDim2.new(0, 25, 0, 25)
+toggleMinimize.Position = UDim2.new(1, -60, 0, 5)
+toggleMinimize.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+toggleMinimize.TextColor3 = Color3.fromRGB(255, 255, 0)
+toggleMinimize.Font = Enum.Font.SourceSansBold
+toggleMinimize.TextSize = 20
+toggleMinimize.Parent = frame
+
+local miniCorner = Instance.new("UICorner")
+miniCorner.CornerRadius = UDim.new(0, 6)
+miniCorner.Parent = toggleMinimize
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Text = "Bot Run V.3"
+title.Size = UDim2.new(1, -65, 0, 30)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255, 255, 0)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 20
+title.Parent = frame
+
+-- Main content
+local mainContent = Instance.new("Frame")
+mainContent.Size = UDim2.new(1, 0, 1, -35)
+mainContent.Position = UDim2.new(0, 0, 0, 35)
+mainContent.BackgroundTransparency = 1
+mainContent.Visible = true
+mainContent.Parent = frame
+
+-- Labels Point A/B
+local function createLabel(text, posY)
+	local lbl = Instance.new("TextLabel")
+	lbl.Text = text
+	lbl.Position = UDim2.new(0.05, 0, 0, posY)
+	lbl.Size = UDim2.new(0.9, 0, 0, 20)
+	lbl.BackgroundTransparency = 1
+	lbl.TextColor3 = Color3.fromRGB(255, 255, 0)
+	lbl.Font = Enum.Font.SourceSansBold
+	lbl.TextSize = 18
+	lbl.TextXAlignment = Enum.TextXAlignment.Center
+	lbl.Parent = mainContent
+	return lbl
+end
+
+createLabel("Point A", 0)
+createLabel("Point B", 40)
+
+-- Textboxes Point A/B (центрування)
+local function createCenteredInput(posY, defaultText)
+	local box = Instance.new("TextBox")
+	box.Size = UDim2.new(0.9, 0, 0, 25)
+	box.Position = UDim2.new(0.05, 0, 0, posY)
+	box.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	box.TextColor3 = Color3.fromRGB(255, 255, 0)
+	box.Text = defaultText or "" -- Виправлено: використовуємо "" якщо nil
+	box.Font = Enum.Font.SourceSans
+	box.TextSize = 18
+	box.ClearTextOnFocus = false
+	box.Parent = mainContent
+
+	local c = Instance.new("UICorner")
+	c.CornerRadius = UDim.new(0, 8)
+	c.Parent = box
+
+	return box
+end
+
+local inputA = createCenteredInput(20, savedA)
+local inputB = createCenteredInput(60, savedB)
+
+-- Start/Stop button
+local toggleButton = Instance.new("TextButton")
+toggleButton.Text = "Start"
+toggleButton.Position = UDim2.new(0.05, 0, 0, 100)
+toggleButton.Size = UDim2.new(0.9, 0, 0, 30)
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 20
+toggleButton.Parent = mainContent
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 8)
+toggleCorner.Parent = toggleButton
+
+-- Status Label
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Text = "Status: Waiting..."
+statusLabel.Position = UDim2.new(0.05, 0, 0, 140)
+statusLabel.Size = UDim2.new(0.6, 0, 0, 20)
+statusLabel.BackgroundTransparency = 1
+statusLabel.TextColor3 = Color3.fromRGB(255, 255, 0)
+statusLabel.Font = Enum.Font.SourceSans
+statusLabel.TextSize = 18
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.Parent = mainContent
+
+-- Coordinates display
+local coordsDisplay = Instance.new("TextLabel")
+coordsDisplay.Text = "Position "
+coordsDisplay.Position = UDim2.new(0.05, 0, 0, 165)
+coordsDisplay.Size = UDim2.new(0.6, 0, 0, 25)
+coordsDisplay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+coordsDisplay.TextColor3 = Color3.fromRGB(255, 255, 0)
+coordsDisplay.Font = Enum.Font.Code
+coordsDisplay.TextSize = 20
+coordsDisplay.TextXAlignment = Enum.TextXAlignment.Left
+coordsDisplay.Parent = mainContent
+
+local coordsCorner = Instance.new("UICorner")
+coordsCorner.CornerRadius = UDim.new(0, 8)
+coordsCorner.Parent = coordsDisplay
+
+-- Copy button для координат
+local copyButton = Instance.new("TextButton")
+copyButton.Text = "Copy"
+copyButton.Position = UDim2.new(0.7, 0, 0.65, 0) -- біля coordsDisplay
+copyButton.Size = UDim2.new(0.25, 0, 0, 25)
+copyButton.BackgroundColor3 = Color3.fromRGB(90, 50, 0)
+copyButton.TextColor3 = Color3.fromRGB(255, 255, 0)
+copyButton.Font = Enum.Font.SourceSansBold
+copyButton.TextSize = 18
+copyButton.Parent = mainContent
+
+local copyCorner = Instance.new("UICorner")
+copyCorner.CornerRadius = UDim.new(0, 8)
+copyCorner.Parent = copyButton
+
+copyButton.MouseButton1Click:Connect(function()
+	if setclipboard then
+		setclipboard(coordsDisplay.Text)  -- копіює чисто координати
+		copyButton.Text = "✓"
+		task.wait(1)
+		copyButton.Text = "Copy"
+	else
+		-- Якщо setclipboard недоступний
+		statusLabel.Text = "Error: Cannot copy!"
+	end
+end)
+
+-- Logic
+local running = false
+local pointA, pointB = nil, nil
+local minimized = false
+local originalFrameSize = frame.Size
+
+local function parseCoords(text)
+	if not text then return nil end
+	text = text:gsub("%s+", "")
+	local x, y, z = text:match("([%-%d%.]+)[, ]([%-%d%.]+)[, ]([%-%d%.]+)")
+	if x and y and z then
+		return Vector3.new(tonumber(x), tonumber(y), tonumber(z))
+	end
+	return nil
+end
+
+local function moveTo(position)
+	local character = game.Players.LocalPlayer.Character
+	if not character then return false end
+
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local rootPart = character:FindFirstChild("HumanoidRootPart")
+
+	if not humanoid or not rootPart then return false end
+	
+	-- Додано перевірку на здоров'я (Humanoid.Health)
+	if humanoid.Health <= 0 then
+		statusLabel.Text = "Error: Character is dead!"
+		return false
+	end
+
+	humanoid:MoveTo(position)
+
+	local startTime = os.time()
+	-- Збільшено поріг до 5 для надійності
+	while running and (rootPart.Position - position).Magnitude > 5 do
+		if os.time() - startTime > 15 then -- Збільшено час очікування
+			return false -- Не вдалося дістатися
+		end
+		task.wait(0.1)
+	end
+	return true
+end
+
+local runThread
+local function startRunning()
+	if runThread then task.cancel(runThread) end
+	running = true
+	runThread = task.spawn(function()
+		while running do
+			statusLabel.Text = "Running to Point A..."
+			if not moveTo(pointA) then
+				statusLabel.Text = "Error: Cannot reach Point A!"
+				running = false
+				break
+			end
+			task.wait(0.5)
+			statusLabel.Text = "Running to Point B..."
+			if not moveTo(pointB) then
+				statusLabel.Text = "Error: Cannot reach Point B!"
+				running = false
+				break
+			end
+			task.wait(0.5)
+		end
+		-- При виході з циклу (зупинка або помилка)
+		toggleButton.Text = "Start"
+		toggleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+		if running then -- Тільки якщо не помилка
+			statusLabel.Text = "Status: Stopped"
+		end
+		running = false -- Встановлюємо в false на випадок помилки
+		
+		-- 💾 Збереження координат
+		if isfile and writefile and inputA.Text and inputB.Text then
+			writefile(saveFile, inputA.Text .. "\n" .. inputB.Text)
+		end
+	end)
+end
+
+local function stopRunning()
+	running = false
+	if runThread then
+		task.cancel(runThread)
+		runThread = nil
+	end
+	toggleButton.Text = "Start"
+	toggleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+	statusLabel.Text = "Status: Stopped"
+	
+	-- 💾 Збереження координат
+	if isfile and writefile and inputA.Text and inputB.Text then
+		writefile(saveFile, inputA.Text .. "\n" .. inputB.Text)
+	end
+end
+
+-- ➡️ Start/Stop Button Logic
+toggleButton.MouseButton1Click:Connect(function()
+	if running then
+		stopRunning()
+	else
+		-- Спроба парсингу
+		pointA = parseCoords(inputA.Text)
+		pointB = parseCoords(inputB.Text)
+
+		if pointA and pointB then
+			toggleButton.Text = "Stop"
+			toggleButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+			statusLabel.Text = "Status: Running..."
+			startRunning()
+		else
+			statusLabel.Text = "Error: Invalid coords!"
+		end
+	end
+end)
+
+-- 🔄 Update Coordinates Display
+game:GetService("RunService").Stepped:Connect(function()
+	local character = game.Players.LocalPlayer.Character
+	local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+
+	if rootPart then
+		local pos = rootPart.Position
+		-- Обрізання до 2 знаків після коми для читабельності
+		local x = math.floor(pos.X * 100 + 0.5) / 100
+		local y = math.floor(pos.Y * 100 + 0.5) / 100
+		local z = math.floor(pos.Z * 100 + 0.5) / 100
+		coordsDisplay.Text = string.format("%s, %s, %s", x, y, z)
+	else
+		coordsDisplay.Text = "Position "
+	end
+end)
+
+-- Close
+closeButton.MouseButton1Click:Connect(function()
+	stopRunning() -- Зупиняємо бота перед закриттям
+	gui:Destroy()
+end)
+
+-- Minimize (FIXED!)
+toggleMinimize.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	if minimized then
+		originalFrameSize = frame.Size -- Зберігаємо оригінальний розмір
+		frame.Size = UDim2.new(0, 280, 0, 35) -- Згортаємо до розміру заголовка
+		mainContent.Visible = false
+		toggleMinimize.Text = "🔻"
+	else
+		frame.Size = originalFrameSize -- Відновлюємо розмір
+		mainContent.Visible = true
+		toggleMinimize.Text = "🔺"
+	end
+end)
