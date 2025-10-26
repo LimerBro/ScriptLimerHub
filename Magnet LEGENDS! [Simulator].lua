@@ -245,6 +245,29 @@ MainTab:CreateToggle({
 	end
 })
 
+MainTab:CreateSection("🎃 Trick or Treat")
+
+local TrickFarm = false
+
+MainTab:CreateToggle({
+	Name = "🍬 Auto Trick or Treat",
+	CurrentValue = false,
+	Flag = "TrickFarm",
+	Callback = function(Value)
+		TrickFarm = Value
+		if TrickFarm then
+			task.spawn(function()
+				while TrickFarm do
+					pcall(function()
+						game:GetService("ReplicatedStorage").FrameworkEvents.DoorbellRing:FireServer("TrickHouse_1")
+					end)
+					task.wait(1) -- затримка між викликами (можеш змінити)
+				end
+			end)
+		end
+	end,
+})
+
 ------------------------------------------------
 -- 🌀 TELEPORTS
 ------------------------------------------------
