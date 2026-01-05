@@ -1,0 +1,488 @@
+-- ============================================
+-- 📦 SERVICES
+-- ============================================
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+
+-- ============================================
+-- 📦 UI LIBRARY
+-- ============================================
+
+local Rayfield = loadstring(game:HttpGet("https://limerbro.github.io/Roblox-Limer/rayfield.lua"))()
+
+-- ============================================
+-- 🔁 GLOBAL STATES & VARIABLES
+-- ============================================
+
+local AutoFarm = false
+local AutoRewards = false
+local AutoCollectDrops = false
+local KillAura = false
+local AutoEggFarm = false
+local AutoAura = false
+local AutoTitle = false
+local AutoPullSword = false
+local AutoBossDamage = false
+local NoClip = false
+local AutoRegisterClick = false
+local EnemiesESP = false
+local AutoTP = false
+local FlyAura = false
+local AutoDungeon = false
+local AutoJoin = false
+
+local ESPObjects = {}
+local ESP_DISTANCE = 1000
+
+-- ============================================
+-- 📡 REMOTES & FOLDERS
+-- ============================================
+
+local Comm = ReplicatedStorage:WaitForChild("Communication")
+local WorldRegions = Workspace:WaitForChild("WorldRegions")
+local EnemiesFolder = Workspace:WaitForChild("Enemies")
+
+-- ============================================
+-- 🛠️ UTILITY FUNCTIONS
+-- ============================================
+
+-- Отримати HRP гравця
+local function getHRP()
+    local char = player.Character or player.CharacterAdded:Wait()
+    return char:WaitForChild("HumanoidRootPart")
+end
+
+-- Плавний політ до цілі
+local function flyTo(hrp, targetPart)
+    local distance = (hrp.Position - targetPart.Position).Magnitude
+    local time = math.clamp(distance / 80, 0.15, 0.6)
+    
+    local tween = TweenService:Create(
+        hrp,
+        TweenInfo.new(time, Enum.EasingStyle.Linear),
+        {CFrame = targetPart.CFrame * CFrame.new(0, 0, -3)}
+    )
+    tween:Play()
+    tween.Completed:Wait()
+end
+
+-- Телепорт ворогів до гравця
+local function teleportEnemies()
+    local enemiesFolder = Workspace:FindFirstChild("Enemies")
+    if not enemiesFolder then return end
+    
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    
+    local hrp = character.HumanoidRootPart
+    local targetCFrame = hrp.CFrame * CFrame.new(0, 0, -6)
+    
+    for _, enemy in pairs(enemiesFolder:GetChildren()) do
+        if enemy:IsA("Model") then
+            if not enemy.PrimaryPart then
+                enemy.PrimaryPart = enemy:FindFirstChildWhichIsA("BasePart")
+            end
+            if enemy.PrimaryPart then
+                enemy:SetPrimaryPartCFrame(targetCFrame)
+            end
+        elseif enemy:IsA("BasePart") then
+            enemy.CFrame = targetCFrame
+        end
+    end
+end
+
+-- ============================================
+-- 🪟 WINDOW
+-- ============================================
+
+local Window = Rayfield:CreateWindow({
+    Name = "Test Script Game",
+    Icon = 105792205668394,
+    LoadingTitle = "Загрузка",
+    LoadingSubtitle = "Автор LimerBro",
+    Theme = "BlackYellowTheme",
+    ToggleUIKeybind = Enum.KeyCode.K,
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "AutoMineFix",
+        FileName = "Settings"
+    }
+})
+
+-- ============================================
+-- 🧩 TABS
+-- ============================================
+
+local MiningTab = Window:CreateTab("Фарм", 4483362458)
+local TeleportTab = Window:CreateTab("Телепорт", 4483362458)
+local PlayerTab = Window:CreateTab("Ігрок", 4483362458)
+local MiscTab = Window:CreateTab("Різне", 4483362458)
+
+-- ============================================
+-- ⛏️ MINING TAB
+-- ============================================
+
+MiningTab:CreateLabel("Фарм")
+
+MiningTab:CreateToggle({
+    Name = "Auto Farm Strength💪",
+    CurrentValue = false,
+    Callback = function(v) AutoFarm = v end
+})
+
+MiningTab:CreateToggle({
+    Name = "Auto Gifts 🎁",
+    CurrentValue = false,
+    Callback = function(v) AutoRewards = v end
+})
+
+MiningTab:CreateToggle({
+    Name = "Magnet 🧲",
+    CurrentValue = false,
+    Callback = function(v) AutoCollectDrops = v end
+})
+
+MiningTab:CreateToggle({
+    Name = "Auto Role Aura💥",
+    CurrentValue = false,
+    Callback = function(v) AutoAura = v end
+})
+
+MiningTab:CreateToggle({
+    Name = "Auto Click 🎯",
+    CurrentValue = false,
+    Callback = function(v) AutoRegisterClick = v end
+})
+
+MiningTab:CreateLabel("Дамаг")
+
+
+MiningTab:CreateToggle({
+    Name = "Auto Pull Excalibur🗡️",
+    CurrentValue = false,
+    Callback = function(v) AutoPullSword = v end
+})
+
+MiningTab:CreateToggle({
+    Name = "Auto Boss Damage 😈",
+    CurrentValue = false,
+    Callback = function(v) AutoBossDamage = v end
+})
+
+-- Авто телепорт ворогів
+MiningTab:CreateToggle({
+    Name = "Auto TP Enemies🌀",
+    CurrentValue = false,
+    Callback = function(Value) AutoTP = Value end
+})
+
+MiningTab:CreateLabel("Удаляє сучність якщо ви іспользували Kill ⚔️")
+
+MiningTab:CreateButton({
+    Name = "Destroy Enemies 🗑️",
+    Callback = function()
+        pcall(function()
+            for _, enemy in ipairs(Workspace.Enemies:GetChildren()) do
+                local id = tonumber(enemy.Name)
+                if id and id >= 1 and id <= 40 then
+                    enemy:Destroy()
+                end
+            end
+        end)
+    end
+})
+
+-- ============================================
+-- 🧭 TELEPORT TAB
+-- ============================================
+
+-- Кнопки для телепорту по регіонах
+if #WorldRegions:GetChildren() == 0 then
+    TeleportTab:CreateLabel("World порожня")
+else
+    for _, part in ipairs(WorldRegions:GetChildren()) do
+        if part:IsA("BasePart") then
+            TeleportTab:CreateButton({
+                Name = "TP World 🌎 " .. part.Name,
+                Callback = function()
+                    pcall(function()
+                        getHRP().CFrame = part.CFrame + Vector3.new(0, 5, 0)
+                    end)
+                end
+            })
+        end
+    end
+end
+
+-- ============================================
+-- 🧍 PLAYER TAB
+-- ============================================
+
+PlayerTab:CreateSlider({
+    Name = "WalkSpeed 🏃",
+    Range = {16, 200},
+    Increment = 1,
+    CurrentValue = 16,
+    Callback = function(v)
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.WalkSpeed = v
+        end
+    end
+})
+
+PlayerTab:CreateToggle({
+    Name = "NoClip 👻",
+    CurrentValue = false,
+    Callback = function(v) NoClip = v end
+})
+
+PlayerTab:CreateButton({
+    Name = "Infinite HP ❤️",
+    Callback = function()
+        pcall(function()
+            local char = player.Character or player.CharacterAdded:Wait()
+            char:SetAttribute("MaxHP", 99999)
+            char:SetAttribute("HP", 99999)
+            char:GetAttributeChangedSignal("HP"):Connect(function()
+                if char:GetAttribute("HP") < 99999 then
+                    char:SetAttribute("HP", 99999)
+                end
+            end)
+        end)
+    end
+})
+
+-- ============================================
+-- 📦 MISC TAB
+-- ============================================
+
+-- Авто відкриття яєць
+MiscTab:CreateLabel("Відкриває Яйце за 1к (Бажано поставити петов на авто удаленя)")
+MiscTab:CreateToggle({
+    Name = "Auto Farm Open 🥚",
+    CurrentValue = false,
+    Callback = function(v) AutoEggFarm = v end
+})
+
+-- Бонуси
+MiscTab:CreateLabel("Бистрий боя, приєднаня в групу, преміум")
+MiscTab:CreateButton({
+    Name = "FastBattle / InGroup / Premium",
+    Callback = function()
+        pcall(function()
+            for _, attr in ipairs({"FastBattle", "InGroup", "Premium"}) do
+                player:SetAttribute(attr, true)
+            end
+            Rayfield:Notify({
+                Title = "Attributes",
+                Content = "Активовано!",
+                Duration = 3
+            })
+        end)
+    end
+})
+
+-- Телепорт до данж луту
+MiscTab:CreateLabel("Тп к 🏺 іспользується в данжі")
+MiscTab:CreateButton({
+    Name = "TP Dungeon Loot 🏺",
+    Callback = function()
+        pcall(function()
+            local hrp = getHRP()
+            for i = 1, 90 do
+                local loot = Workspace:FindFirstChild("Dungeon")
+                    and Workspace.Dungeon:FindFirstChild("Loot")
+                    and Workspace.Dungeon.Loot:FindFirstChild(tostring(i))
+                if loot then
+                    local part = loot:FindFirstChildWhichIsA("BasePart")
+                    if part then
+                        hrp.CFrame = part.CFrame + Vector3.new(0, 3, 0)
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    end
+})
+
+-- ESP ворогів
+MiscTab:CreateLabel("Подсветка всіх сучностей поряд на 500 метрів")
+MiscTab:CreateToggle({
+    Name = "ESP Enemies 🟥",
+    CurrentValue = false,
+    Callback = function(v)
+        EnemiesESP = v
+        if not v then
+            for _, e in pairs(ESPObjects) do
+                if e then e:Destroy() end
+            end
+            table.clear(ESPObjects)
+        end
+    end
+})
+
+-- Вибор світу
+local Worlds = {}
+for _, world in pairs(WorldRegions:GetChildren()) do
+    table.insert(Worlds, world.Name)
+end
+
+local SelectedWorld = nil
+MiscTab:CreateDropdown({
+    Name = "Select World",
+    Options = Worlds,
+    CurrentOption = {},
+    Flag = "SelectWorld",
+    Callback = function(Option)
+        SelectedWorld = Option[1]
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "Start / Go To World",
+    Callback = function()
+        if SelectedWorld then
+            pcall(function()
+                player:SetAttribute("CurrentWorld", SelectedWorld)
+            end)
+        end
+    end
+})
+
+-- ============================================
+-- 🔄 MAIN LOOPS
+-- ============================================
+
+-- Auto Farm
+task.spawn(function()
+    while task.wait(0.05) do
+        if AutoFarm then
+            pcall(function() Comm.Hit:FireServer() end)
+        end
+    end
+end)
+
+-- Auto Rewards
+task.spawn(function()
+    while task.wait(2) do
+        if AutoRewards then
+            for i = 1, 20 do
+                pcall(function() Comm.ClaimPlaytimeReward:FireServer(i) end)
+            end
+        end
+    end
+end)
+
+-- Auto Collect Drops
+task.spawn(function()
+    while task.wait(0.3) do
+        if AutoCollectDrops then
+            local hrp = getHRP()
+            for _, d in pairs(Workspace.Drops:GetChildren()) do
+                local p = d:IsA("Model") and d:FindFirstChildWhichIsA("BasePart") or d
+                if p then p.CFrame = hrp.CFrame end
+            end
+        end
+    end
+end)
+
+
+-- Auto Aura
+task.spawn(function()
+    while task.wait(1) do
+        if AutoAura then
+            pcall(function() Comm.OpenAuras:InvokeServer("Max") end)
+        end
+    end
+end)
+
+-- Auto Egg Farm
+task.spawn(function()
+    while task.wait(0.4) do
+        if AutoEggFarm then
+            pcall(function() Comm.Pet.BuyEgg:InvokeServer("Multi", "World1_Baby") end)
+        end
+    end
+end)
+
+-- Auto Pull Sword
+task.spawn(function()
+    while task.wait(0.5) do
+        if AutoPullSword then
+            pcall(function() Comm.PullSword:InvokeServer() end)
+        end
+    end
+end)
+
+-- Auto Boss Damage
+task.spawn(function()
+    while task.wait(0.01) do
+        if AutoBossDamage then
+            pcall(function() Comm.Champion.Hit:FireServer("Dark Knight") end)
+        end
+    end
+end)
+
+-- Auto Register Click
+task.spawn(function()
+    while task.wait(0.1) do
+        if AutoRegisterClick then
+            pcall(function()
+                ReplicatedStorage.Communication.RegisterTargetClick:FireServer()
+            end)
+        end
+    end
+end)
+
+-- NoClip
+RunService.Stepped:Connect(function()
+    if NoClip and player.Character then
+        for _, p in pairs(player.Character:GetChildren()) do
+            if p:IsA("BasePart") then
+                p.CanCollide = false
+            end
+        end
+    end
+end)
+
+-- ESP Enemies
+task.spawn(function()
+    while task.wait(0.5) do
+        if not EnemiesESP then continue end
+        local hrp = getHRP()
+        for _, enemy in pairs(Workspace.Enemies:GetChildren()) do
+            if enemy:IsA("Model") and enemy.PrimaryPart then
+                local dist = (enemy.PrimaryPart.Position - hrp.Position).Magnitude
+                if dist <= ESP_DISTANCE then
+                    if not ESPObjects[enemy] then
+                        local h = Instance.new("Highlight")
+                        h.FillTransparency = 1
+                        h.OutlineColor = Color3.fromRGB(255, 0, 0)
+                        h.Parent = enemy
+                        ESPObjects[enemy] = h
+                    end
+                elseif ESPObjects[enemy] then
+                    ESPObjects[enemy]:Destroy()
+                    ESPObjects[enemy] = nil
+                end
+            end
+        end
+    end
+end)
+
+-- Auto TP Enemies
+RunService.Heartbeat:Connect(function()
+    if AutoTP then
+        teleportEnemies()
+    end
+end)
+
+-- ============================================
+-- ✅ ГОТОВО
+-- ============================================
