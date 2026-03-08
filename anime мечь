@@ -1,0 +1,462 @@
+-- ============================================
+-- 📦 SERVICES
+-- ============================================
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+local player = Players.LocalPlayer
+
+-- ============================================
+-- 📦 UI LIBRARY
+-- ============================================
+
+local Rayfield = loadstring(game:HttpGet("https://limerbro.github.io/Roblox-Limer/rayfield.lua"))()
+
+-- ============================================
+-- 🪟 WINDOW
+-- ============================================
+
+local Window = Rayfield:CreateWindow({
+	Name = "[💖EVENT] Slime Incremental",
+	Icon = 105792205668394,
+	LoadingTitle = "Загрузка",
+	LoadingSubtitle = "Автор LimerBro",
+	Theme = "BlackYellowTheme",
+	ToggleUIKeybind = Enum.KeyCode.K,
+	ConfigurationSaving = {
+		Enabled = true,
+		FolderName = "AutoMineFix",
+		FileName = "Settings"
+	}
+})
+
+-- ============================================
+-- 🧩 TABS
+-- ============================================
+
+local MiningTab = Window:CreateTab("Фарм", 4483362458)
+local PTab = Window:CreateTab("Ігрок", 4483362458)
+
+-- ============================================
+-- 🌀 MAZE SELECT
+-- ============================================
+
+local SelectedMaze = "Maze:1"
+
+MiningTab:CreateDropdown({
+	Name = "Maze номер",
+	Options = {"Maze:1","Maze:2","Maze:3"},
+	CurrentOption = {"Maze:1"},
+	MultipleOptions = false,
+	Flag = "MazeSelect",
+	Callback = function(Options)
+		SelectedMaze = Options[1]
+	end
+})
+
+-- ============================================
+-- 🤖 AUTO MAZE
+-- ============================================
+
+local AutoMaze = false
+
+MiningTab:CreateToggle({
+	Name = "Auto Maze Raid",
+	CurrentValue = false,
+	Flag = "AutoMaze",
+	Callback = function(Value)
+
+		AutoMaze = Value
+
+		if AutoMaze then
+
+			task.spawn(function()
+
+				while AutoMaze do
+
+					local maze = workspace:FindFirstChild("Zones") and workspace.Zones:FindFirstChild(SelectedMaze)
+
+					-- якщо Maze пропав
+					if not maze then
+
+						Rayfield:Notify({
+							Title = "Maze",
+							Content = "Maze не знайдено. Очікування 5 секунд...",
+							Duration = 3
+						})
+
+						task.wait(5)
+						continue
+					end
+
+					local char = player.Character
+
+					if char and char:FindFirstChild("HumanoidRootPart") then
+
+						local hrp = char.HumanoidRootPart
+						local enemiesFolder = workspace:FindFirstChild("Enemies")
+
+						local didSomething = false
+
+						-- ============================================
+						-- ENEMIES
+						-- ============================================
+
+						if enemiesFolder and #enemiesFolder:GetChildren() > 0 then
+
+							for _,enemy in pairs(enemiesFolder:GetChildren()) do
+
+								if enemy:IsA("Model") then
+
+									local part = enemy:FindFirstChild("HumanoidRootPart") or enemy:FindFirstChildWhichIsA("BasePart")
+
+									if part then
+
+										hrp.CFrame = part.CFrame * CFrame.new(0,0,3)
+
+										didSomething = true
+										task.wait(0.3)
+
+									end
+								end
+
+								if not AutoMaze then break end
+
+							end
+						end
+
+						-- ============================================
+						-- DOORS
+						-- ============================================
+
+						local roomsFolder = maze.Map.Rooms
+
+						if roomsFolder then
+
+							for _,room in pairs(roomsFolder:GetChildren()) do
+
+								local doors = room:FindFirstChild("Doors")
+
+								if doors then
+
+									for _,door in pairs(doors:GetChildren()) do
+
+										local prompt = door:FindFirstChildOfClass("ProximityPrompt")
+
+										if prompt then
+
+											hrp.CFrame = door.CFrame * CFrame.new(0,0,-3)
+
+											task.wait(0.2)
+
+											fireproximityprompt(prompt)
+
+											task.wait(0.4)
+
+											didSomething = true
+
+										end
+									end
+								end
+
+								if not AutoMaze then break end
+							end
+						end
+
+						-- ============================================
+						-- RESTART MAZE
+						-- ============================================
+
+						if not didSomething then
+
+							local start = workspace:FindFirstChild("MazeStart")
+
+							if start then
+								hrp.CFrame = start.CFrame + Vector3.new(0,3,0)
+							end
+
+							task.wait(2)
+
+						end
+					end
+
+					task.wait(0.3)
+
+				end
+
+			end)
+
+		end
+
+	end
+})
+
+-- ============================================
+-- ⚡ FAST FARM (TP → KILL)
+-- ============================================
+
+local FastFarm = false
+
+MiningTab:CreateToggle({
+	Name = "Fast Farm Enemies (TP Kill)",
+	CurrentValue = false,
+	Flag = "FastFarmTP",
+	Callback = function(Value)
+
+		FastFarm = Value
+
+		if FastFarm then
+
+			task.spawn(function()
+
+				while FastFarm do
+
+					local char = player.Character
+					if not char or not char:FindFirstChild("HumanoidRootPart") then
+						task.wait(0.02)
+						continue
+					end
+
+					local hrp = char.HumanoidRootPart
+					local enemiesFolder = workspace:FindFirstChild("Enemies")
+
+					if enemiesFolder then
+
+						for _,enemy in pairs(enemiesFolder:GetChildren()) do
+
+							if not FastFarm then break end
+
+							if enemy:IsA("Model") then
+
+								local part =
+									enemy:FindFirstChild("HumanoidRootPart")
+									or enemy:FindFirstChildWhichIsA("BasePart")
+
+								if part then
+
+									-- TP до ворога
+									hrp.CFrame = part.CFrame * CFrame.new(0,0,3)
+
+									-- чекати поки ворог помре
+									repeat
+										task.wait(0.01)
+									until not enemy.Parent or not FastFarm
+
+								end
+
+							end
+
+						end
+
+					end
+
+					task.wait(0)
+
+				end
+
+			end)
+
+		end
+
+	end
+})
+-- ============================================
+-- 🚪 NOCLIP
+-- ============================================
+
+local NoClip = false
+
+PTab:CreateToggle({
+	Name = "NoClip (проходити крізь стіни)",
+	CurrentValue = false,
+	Flag = "NoClip",
+	Callback = function(Value)
+
+		NoClip = Value
+
+		if NoClip then
+
+			task.spawn(function()
+
+				while NoClip do
+
+					local char = player.Character
+
+					if char then
+						for _,v in pairs(char:GetDescendants()) do
+							if v:IsA("BasePart") then
+								v.CanCollide = false
+							end
+						end
+					end
+
+					task.wait()
+
+				end
+
+			end)
+
+		end
+
+	end
+})
+-- ============================================
+-- 🔎 TELEPORT TO SECRET
+-- ============================================
+
+MiningTab:CreateButton({
+	Name = "TP to Secret",
+	Callback = function()
+
+		local char = player.Character
+		if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+
+		local hrp = char.HumanoidRootPart
+		local zones = workspace:FindFirstChild("Zones")
+
+		if zones then
+
+			for _,zone in pairs(zones:GetChildren()) do
+
+				local utility = zone:FindFirstChild("Utility")
+
+				if utility then
+
+					local secret = utility:FindFirstChild("Secret")
+
+					if secret and secret:IsA("BasePart") then
+
+						hrp.CFrame = secret.CFrame + Vector3.new(0,3,0)
+
+						Rayfield:Notify({
+							Title = "Secret",
+							Content = "Телепорт до Secret",
+							Duration = 3
+						})
+
+						return
+					end
+
+				end
+
+			end
+
+		end
+
+		Rayfield:Notify({
+			Title = "Secret",
+			Content = "Secret не знайдено",
+			Duration = 3
+		})
+
+	end
+})
+-- ============================================
+-- 🎁 REDEEM ALL CODES
+-- ============================================
+
+MiningTab:CreateButton({
+	Name = "Redeem All Codes",
+	Callback = function()
+
+		local codes = {
+
+			"UPDATE16","UPDATE15","UPDATE14","UPDATE13","UPDATE12","UPDATE11","UPDATE10","UPDATE9","UPDATE8","UPDATE7","UPDATE6","UPDATE5","UPDATE4","UPDATE3","UPDATE2","UPDATE1",
+
+			"SRR4D3LAY",
+			"GIFTSCYTHE",
+			"UPDATE15PT3",
+			"UPDATE15PT2",
+			"150KLIKES",
+			"59MVISITS",
+			"149KLIKES",
+			"PATCHUPDT14",
+			"230KFAVS",
+			"148KLIKES",
+			"58MVISITS",
+			"225KFAVS",
+			"HIDDENQUESTSFIXED",
+			"220KFAVS",
+			"57MVISITS",
+			"145KLIKES",
+			"215KFAVS",
+			"210KFAVS",
+			"140KLIKES",
+			"55MVISITS",
+			"MAGICRAID",
+			"139KLIKES",
+			"54MVISITS",
+			"200KFAVS",
+			"UPDATE14PT3",
+			"UPDATE14PT2",
+			"UPDATE14",
+			"UPDATE13PT3",
+			"UPDATE13PT2",
+			"UPDATE13",
+			"UPDATE12PT3",
+			"UPDATE12PT2",
+			"UPDATE12"
+
+		}
+
+		for _,code in ipairs(codes) do
+
+			local args = {
+				[1] = "Code",
+				[2] = {code}
+			}
+
+			game:GetService("ReplicatedStorage").Reply.Reliable:FireServer(unpack(args))
+
+			task.wait(0.1)
+
+		end
+
+		Rayfield:Notify({
+			Title = "Codes",
+			Content = "Всі коди активовані",
+			Duration = 5
+		})
+
+	end
+})-- ============================================
+-- 💤 ANTI AFK BUTTON
+-- ============================================
+
+local AntiAFK = false
+local VirtualInputManager = game:GetService("VirtualInputManager")
+
+PTab:CreateToggle({
+	Name = "Anti AFK",
+	CurrentValue = false,
+	Flag = "AntiAFK",
+	Callback = function(Value)
+
+		AntiAFK = Value
+
+		if AntiAFK then
+
+			player.Idled:Connect(function()
+
+				if not AntiAFK then return end
+
+				-- відкрити чат
+				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Slash, false, game)
+				task.wait(0.1)
+				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Slash, false, game)
+
+				task.wait(0.3)
+
+				-- закрити чат
+				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
+				task.wait(0.1)
+				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
+
+			end)
+
+		end
+
+	end
+})
