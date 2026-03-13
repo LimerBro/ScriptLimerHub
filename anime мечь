@@ -19,7 +19,7 @@ local Rayfield = loadstring(game:HttpGet("https://limerbro.github.io/Roblox-Lime
 -- ============================================
 
 local Window = Rayfield:CreateWindow({
-	Name = "[💖EVENT] Slime Incremental",
+	Name = "Anime Weapons",
 	Icon = 105792205668394,
 	LoadingTitle = "Загрузка",
 	LoadingSubtitle = "Автор LimerBro",
@@ -36,8 +36,8 @@ local Window = Rayfield:CreateWindow({
 -- 🧩 TABS
 -- ============================================
 
-local MiningTab = Window:CreateTab("Фарм", 4483362458)
-local PTab = Window:CreateTab("Ігрок", 4483362458)
+local MiningTab = Window:CreateTab("Maze", 4483362458)
+local PTab = Window:CreateTab("Main", 4483362458)
 
 -- ============================================
 -- 🌀 MAZE SELECT
@@ -192,76 +192,6 @@ MiningTab:CreateToggle({
 
 	end
 })
-
--- ============================================
--- ⚡ FAST FARM (TP → KILL)
--- ============================================
-
-local FastFarm = false
-
-MiningTab:CreateToggle({
-	Name = "Fast Farm Enemies (TP Kill)",
-	CurrentValue = false,
-	Flag = "FastFarmTP",
-	Callback = function(Value)
-
-		FastFarm = Value
-
-		if FastFarm then
-
-			task.spawn(function()
-
-				while FastFarm do
-
-					local char = player.Character
-					if not char or not char:FindFirstChild("HumanoidRootPart") then
-						task.wait(0.02)
-						continue
-					end
-
-					local hrp = char.HumanoidRootPart
-					local enemiesFolder = workspace:FindFirstChild("Enemies")
-
-					if enemiesFolder then
-
-						for _,enemy in pairs(enemiesFolder:GetChildren()) do
-
-							if not FastFarm then break end
-
-							if enemy:IsA("Model") then
-
-								local part =
-									enemy:FindFirstChild("HumanoidRootPart")
-									or enemy:FindFirstChildWhichIsA("BasePart")
-
-								if part then
-
-									-- TP до ворога
-									hrp.CFrame = part.CFrame * CFrame.new(0,0,3)
-
-									-- чекати поки ворог помре
-									repeat
-										task.wait(0.01)
-									until not enemy.Parent or not FastFarm
-
-								end
-
-							end
-
-						end
-
-					end
-
-					task.wait(0)
-
-				end
-
-			end)
-
-		end
-
-	end
-})
 -- ============================================
 -- 🚪 NOCLIP
 -- ============================================
@@ -306,8 +236,8 @@ PTab:CreateToggle({
 -- 🔎 TELEPORT TO SECRET
 -- ============================================
 
-MiningTab:CreateButton({
-	Name = "TP to Secret",
+PTab:CreateButton({
+	Name = "TP to Secret Boss",
 	Callback = function()
 
 		local char = player.Character
@@ -357,13 +287,13 @@ MiningTab:CreateButton({
 -- 🎁 REDEEM ALL CODES
 -- ============================================
 
-MiningTab:CreateButton({
+PTab:CreateButton({
 	Name = "Redeem All Codes",
 	Callback = function()
 
 		local codes = {
 
-			"UPDATE16","UPDATE15","UPDATE14","UPDATE13","UPDATE12","UPDATE11","UPDATE10","UPDATE9","UPDATE8","UPDATE7","UPDATE6","UPDATE5","UPDATE4","UPDATE3","UPDATE2","UPDATE1",
+			"UPDATE18 UPDATE17PT2 UPDATE17 UPDATE16","UPDATE15","UPDATE14","UPDATE13","UPDATE12","UPDATE11","UPDATE10","UPDATE9","UPDATE8","UPDATE7","UPDATE6","UPDATE5","UPDATE4","UPDATE3","UPDATE2","UPDATE1",
 
 			"SRR4D3LAY",
 			"GIFTSCYTHE",
@@ -453,6 +383,188 @@ PTab:CreateToggle({
 				VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Escape, false, game)
 				task.wait(0.1)
 				VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Escape, false, game)
+
+			end)
+
+		end
+
+	end
+})-- ============================================
+-- 🗝 TP HIDDEN QUEST (MODEL)
+-- ============================================
+
+PTab:CreateButton({
+	Name = "TP Secret Quest",
+	Callback = function()
+
+		local char = player.Character
+		if not char then return end
+
+		local hrp = char:FindFirstChild("HumanoidRootPart")
+		if not hrp then return end
+
+		local zones = workspace:FindFirstChild("Zones")
+		if not zones then return end
+
+		local found = false
+
+		for _,zone in pairs(zones:GetChildren()) do
+
+			local utility = zone:FindFirstChild("Utility")
+
+			if utility then
+
+				local hidden = utility:FindFirstChild("HiddenQuest")
+
+				if hidden and hidden:IsA("Model") then
+
+					-- використовуємо PrimaryPart, якщо є
+					local targetPart = hidden.PrimaryPart or hidden:FindFirstChildWhichIsA("BasePart")
+					if targetPart then
+
+						hrp.CFrame = targetPart.CFrame + Vector3.new(0,3,0)
+
+						Rayfield:Notify({
+							Title = "Hidden Quest",
+							Content = "Телепорт до Hidden Quest",
+							Duration = 4
+						})
+
+						found = true
+						break
+
+					end
+
+				end
+
+			end
+
+		end
+
+		if not found then
+			Rayfield:Notify({
+				Title = "Hidden Quest",
+				Content = "Hidden Quest не знайдено",
+				Duration = 4
+			})
+		end
+
+	end
+})
+-- ============================================
+-- 🏰 DUNGEON TAB
+-- ============================================
+
+local DungeonTab = Window:CreateTab("Dungeon", 4483362458)
+
+local SelectedDungeon = "Dungeon:1"
+local FlySpeed = 60
+local StartFromOne = false
+local AutoDungeon = false
+
+-- ============================================
+-- 📂 SELECT DUNGEON
+-- ============================================
+
+DungeonTab:CreateDropdown({
+	Name = "Select Dungeon",
+	Options = {"Dungeon:1","Dungeon:2","Dungeon:3","Dungeon:4","Dungeon:5"},
+	CurrentOption = {"Dungeon:1"},
+	MultipleOptions = false,
+	Flag = "DungeonSelect",
+	Callback = function(Options)
+		SelectedDungeon = Options[1]
+	end
+})
+
+-- ============================================
+-- 🎚 FLY SPEED SLIDER
+-- ============================================
+
+DungeonTab:CreateSlider({
+	Name = "Fly Speed",
+	Range = {10,100},
+	Increment = 5,
+	Suffix = "Speed",
+	CurrentValue = 60,
+	Flag = "FlySpeed",
+	Callback = function(Value)
+		FlySpeed = Value
+	end
+})
+
+-- ============================================
+-- 🔁 START FROM ROOM 1
+-- ============================================
+
+DungeonTab:CreateToggle({
+	Name = "Start From Room 1",
+	CurrentValue = false,
+	Flag = "StartRoom1",
+	Callback = function(Value)
+		StartFromOne = Value
+	end
+})
+
+-- ============================================
+-- 🚀 AUTO DUNGEON FLY
+-- ============================================
+
+DungeonTab:CreateToggle({
+	Name = "Auto Dungeon Fly",
+	CurrentValue = false,
+	Flag = "AutoDungeonFly",
+	Callback = function(Value)
+
+		AutoDungeon = Value
+
+		if AutoDungeon then
+
+			task.spawn(function()
+
+				while AutoDungeon do
+
+					local char = player.Character
+					if not char then task.wait() continue end
+
+					local hrp = char:FindFirstChild("HumanoidRootPart")
+					if not hrp then task.wait() continue end
+
+					local dungeon = workspace.Zones:FindFirstChild(SelectedDungeon)
+					if not dungeon then task.wait() continue end
+
+					local corridors = dungeon.Map.Corridors
+					if not corridors then task.wait() continue end
+
+					local i = StartFromOne and 1 or 2
+
+					while AutoDungeon do
+
+						local room = corridors:FindFirstChild(tostring(i))
+						if not room then break end
+
+						local door = room:FindFirstChild("Door")
+
+						if door then
+
+							repeat
+
+								local direction = (door.Position - hrp.Position).Unit
+								hrp.CFrame = hrp.CFrame + direction * (FlySpeed * 0.03)
+
+								task.wait()
+
+							until (hrp.Position - door.Position).Magnitude < 5 or not AutoDungeon
+
+						end
+
+						i += 1
+
+						task.wait()
+
+					end
+
+				end
 
 			end)
 
