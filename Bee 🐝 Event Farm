@@ -6,7 +6,6 @@ local Window = Rayfield:CreateWindow({
     LoadingTitle = "😈 Script Limer 👾",
     LoadingSubtitle = "Автор LimerBro",
     Theme = "BlackYellowTheme",
-
     ConfigurationSaving = {
         Enabled = true,
         FolderName = "LimerHubConfigs",
@@ -23,7 +22,7 @@ Rayfield:Notify({
 --========================
 -- TAB
 --========================
-local PlayerTab = Window:CreateTab("Player", 9856936588)
+local PlayerTab = Window:CreateTab("Player", 4483362458) -- Змінив ID іконки на стандартний
 
 PlayerTab:CreateSection("Farm Systems")
 
@@ -81,8 +80,7 @@ PlayerTab:CreateToggle({
 -- MAIN LOOP
 --========================
 task.spawn(function()
-    while task.wait(0.15) do
-
+    while task.wait(0.1) do
         local plr = game.Players.LocalPlayer
         local char = plr.Character
         if not char then continue end
@@ -90,15 +88,12 @@ task.spawn(function()
         local hrp = char:FindFirstChild("HumanoidRootPart")
         if not hrp then continue end
 
-        --====================
         -- ORBS
-        --====================
         if OrbTP then
-            local sphere = workspace:FindFirstChild("Events")
-            sphere = sphere and sphere:FindFirstChild("ArcadeSpheres")
-
-            if sphere then
-                for _,o in pairs(sphere:GetChildren()) do
+            local events = workspace:FindFirstChild("Events")
+            local spheres = events and events:FindFirstChild("ArcadeSpheres")
+            if spheres then
+                for _, o in pairs(spheres:GetChildren()) do
                     if o.Name == "ArcadeOrb" then
                         if o:IsA("BasePart") then
                             o.CFrame = hrp.CFrame
@@ -110,103 +105,58 @@ task.spawn(function()
             end
         end
 
-        --====================
         -- TICKETS
-        --====================
         if TicketFarm then
             local events = workspace:FindFirstChild("Events")
-
             if events then
-                for _,o in pairs(events:GetDescendants()) do
+                for _, o in pairs(events:GetDescendants()) do
                     if o.Name == "ArcadeTicket" then
-
                         local part = o:IsA("Model") and o.PrimaryPart or o:IsA("BasePart") and o
-
                         if part then
-                            hrp.CFrame = part.CFrame + Vector3.new(0,3,0)
-                            task.wait(0.25)
-
+                            hrp.CFrame = part.CFrame + Vector3.new(0, 3, 0)
+                            task.wait(0.2)
                             local prompt = o:FindFirstChild("PickUpPrompt", true)
-                            if prompt then
-                                fireproximityprompt(prompt, 1)
-                            end
+                            if prompt then fireproximityprompt(prompt, 1) end
                         end
-
-                        task.wait(0.4)
                     end
                 end
             end
         end
 
-        --====================
         -- SNOWFLAKES
-        --====================
         if SnowFarm then
-            for _,o in pairs(workspace:GetChildren()) do
+            for _, o in pairs(workspace:GetChildren()) do
                 if o.Name == "SnowflakePickup" then
-
                     local part = o:IsA("Model") and o.PrimaryPart or o:IsA("BasePart") and o
-
                     if part then
-                        hrp.CFrame = part.CFrame + Vector3.new(0,3,0)
-                        task.wait(0.25)
-
+                        hrp.CFrame = part.CFrame + Vector3.new(0, 3, 0)
+                        task.wait(0.2)
                         local prompt = o:FindFirstChild("PickUpPrompt", true)
-                        if prompt then
-                            fireproximityprompt(prompt, 1)
-                        end
-
-                        task.wait(0.4)
+                        if prompt then fireproximityprompt(prompt, 1) end
                     end
                 end
             end
         end
 
---====================
--- GHOST SYSTEM FIXED
---====================
-if GhostTP then
-    local target = hrp.CFrame * CFrame.new(0,0,-6)
-
-    for _,obj in pairs(workspace:GetChildren()) do
-        if obj:IsA("Model") then
-
-            -- перевіряємо чи це ghost (по назві)
-            if string.find(obj.Name, "Ghost") then
-
-                if obj.PrimaryPart then
-                    obj:SetPrimaryPartCFrame(target)
+        -- GHOST SYSTEM
+        if GhostTP then
+            local target = hrp.CFrame * CFrame.new(0, 0, -6)
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj:IsA("Model") and string.find(obj.Name, "Ghost") then
+                    if obj.PrimaryPart then obj:SetPrimaryPartCFrame(target) end
                 end
-
             end
         end
-    end
-end
 
---====================
--- METEOR FARM FIXED
---====================
-if MeteorFarm then
-    local meteorFolder = workspace:FindFirstChild("MeteoronPickup")
-
-    if meteorFolder and meteorFolder:IsA("Model") then
-
-        local part = meteorFolder.PrimaryPart
-
-        if part then
-            -- ТП до метеора
-            hrp.CFrame = part.CFrame + Vector3.new(0,3,0)
-
-            task.wait(0.25)
-
-            -- беремо prompt
-            local prompt = part:FindFirstChild("PickUpPrompt")
-
-            if prompt then
-                fireproximityprompt(prompt, 1)
+        -- METEOR FARM
+        if MeteorFarm then
+            local meteor = workspace:FindFirstChild("MeteoronPickup")
+            if meteor and meteor.PrimaryPart then
+                hrp.CFrame = meteor.PrimaryPart.CFrame + Vector3.new(0, 3, 0)
+                task.wait(0.2)
+                local prompt = meteor.PrimaryPart:FindFirstChild("PickUpPrompt")
+                if prompt then fireproximityprompt(prompt, 1) end
             end
-
-            task.wait(0.4)
         end
-    end
-end
+    end -- Кінець циклу while
+end) -- Кінець task.spawn
