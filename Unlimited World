@@ -1,0 +1,223 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "LimerHub",
+    Icon = 137349931636639,
+    LoadingTitle = "GAME Scripting ",
+    LoadingSubtitle = "Автор LimerBro",
+    Theme = "BlackYellowTheme",
+    
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "LimerHubConfigs",
+        FileName = "LimerHubSettings"
+    },
+})
+
+
+-- ============================================
+-- PLAYER TAB
+-- ============================================
+
+local PlayerTab = Window:CreateTab("Player", null)
+PlayerTab:CreateSection("Основні функції")
+
+PlayerTab:CreateSlider({
+    Name = "Швидкість ходьби",
+    Range = {16, 200},
+    Increment = 1,
+    Suffix = "units",
+    CurrentValue = 16,
+    Flag = "WalkSpeed",
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed = Value
+    end
+})
+
+PlayerTab:CreateSection("Утиліти")
+
+PlayerTab:CreateButton({
+    Name = "Анті АФК",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/hassanxzayn-lua/Anti-afk/main/antiafkbyhassanxzyn"))()
+    end,
+})
+
+-- ============================================
+-- GAME TAB
+-- ============================================
+
+local GameTab = Window:CreateTab("Game", null)
+
+-- ============================================
+-- ⚔️ АВТО КЛІК
+-- ============================================
+
+GameTab:CreateSection("Автоматизація")
+
+local autoClickConnection
+GameTab:CreateToggle({
+    Name = "Авто Клік",
+    CurrentValue = false,
+    Flag = "AutoClickToggle",
+    Callback = function(Value)
+        if Value then
+            autoClickConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                game:GetService("ReplicatedStorage").Remotes.PlayerClickAttackSkill:FireServer({})
+            end)
+        elseif autoClickConnection then
+            autoClickConnection:Disconnect()
+            autoClickConnection = nil
+        end
+    end,
+})
+
+GameTab:CreateSection("Скриває вилупленіє героїв")
+
+GameTab:CreateToggle({
+    Name = "Hide AnimationView",
+    CurrentValue = false,
+    Callback = function(Value)
+
+        local gui = game:GetService("Players").LocalPlayer
+            .PlayerGui.DrawCardPanel.AnimationView
+
+        if Value then
+            gui.Size = UDim2.new(0,0,0,0)
+        else
+            gui.Size = UDim2.new(300,0,150,0) -- повернути назад (приклад)
+        end
+
+    end
+})
+
+
+GameTab:CreateSection("На дівається самий лучий мамонт")
+
+GameTab:CreateButton({
+    Name = "Equip Mount",
+    Callback = function()
+        local args = {
+            [1] = 100045
+        }
+
+        game:GetService("ReplicatedStorage")
+            .Remotes
+            .EquipMount:FireServer(unpack(args))
+    end
+})
+
+GameTab:CreateSection("Авто закупка книг по +1")
+
+-- Перша
+GameTab:CreateToggle({
+    Name = "Книга 1",
+    CurrentValue = false,
+    Callback = function(Value)
+        _G.Exchange1 = Value
+
+        if Value then
+            task.spawn(function()
+                while _G.Exchange1 do
+                    game:GetService("ReplicatedStorage")
+                        .Remotes
+                        .MapShopExchange:FireServer(10020)
+
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+
+-- Друга
+GameTab:CreateToggle({
+    Name = "Книга 2",
+    CurrentValue = false,
+    Callback = function(Value)
+        _G.Exchange2 = Value
+
+        if Value then
+            task.spawn(function()
+                while _G.Exchange2 do
+                    game:GetService("ReplicatedStorage")
+                        .Remotes
+                        .MapShopExchange:FireServer(10021)
+
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+
+-- Третя
+GameTab:CreateToggle({
+    Name = "Книга 3",
+    CurrentValue = false,
+    Callback = function(Value)
+        _G.Exchange3 = Value
+
+        if Value then
+            task.spawn(function()
+                while _G.Exchange3 do
+                    game:GetService("ReplicatedStorage")
+                        .Remotes
+                        .MapShopExchange:FireServer(10022)
+
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+-- ============================================
+-- 🎰 AUTO GACHA
+-- ============================================
+
+GameTab:CreateSection("🎰 Auto Gacha")
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local autoGacha = {}
+local delay = 0.2
+
+local gachas = {
+    {name = "Breath Amplification W - 1", id = 400001},
+    {name = "Elemental Blessing W - 3", id = 400006},
+    {name = "Ornament W - 4", id = 400005},
+    {name = "Awakening W - 8", id = 400002},
+    {name = "Headdress W - 12 ", id = 400008},
+    {name = "Talisman W - 18", id = 400007},
+    {name = "Mask W - 20", id = 400009},
+}
+
+
+-- TOGGLES
+for i, data in ipairs(gachas) do
+    autoGacha[i] = false
+
+    GameTab:CreateToggle({
+        Name = "Auto " .. data.name,
+        CurrentValue = false,
+        Callback = function(Value)
+            autoGacha[i] = Value
+
+            if Value then
+                task.spawn(function()
+                    while autoGacha[i] do
+                        local args = {
+                            [1] = {
+                                isAuto = false,
+                                machineId = data.id
+                            },
+                        }
+
+                        ReplicatedStorage.Remotes.RerollOrnament:InvokeServer(unpack(args))
+                        task.wait(delay)
+                    end
+                end)
+            end
+        end,
+    })
+end
+
