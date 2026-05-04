@@ -18,8 +18,8 @@ local Window = Rayfield:CreateWindow({
 -- PLAYER TAB
 -- ============================================
 
-local PlayerTab = Window:CreateTab("Player", null)
-PlayerTab:CreateSection("Основні функції")
+local PlayerTab = Window:CreateTab("Player", Heart)
+PlayerTab:CreateSection("Main", Sword)
 
 PlayerTab:CreateSlider({
     Name = "Швидкість ходьби",
@@ -53,23 +53,62 @@ local GameTab = Window:CreateTab("Game", null)
 -- ============================================
 
 GameTab:CreateSection("Автоматизація")
-
-local autoClickConnection
-GameTab:CreateToggle({
-    Name = "Авто Клік",
-    CurrentValue = false,
-    Flag = "AutoClickToggle",
-    Callback = function(Value)
-        if Value then
-            autoClickConnection = game:GetService("RunService").Heartbeat:Connect(function()
-                game:GetService("ReplicatedStorage").Remotes.PlayerClickAttackSkill:FireServer({})
-            end)
-        elseif autoClickConnection then
-            autoClickConnection:Disconnect()
-            autoClickConnection = nil
-        end
-    end,
+-- Зеля удачі
+GameTab:CreateButton({
+   Name = "Зеля удачі",
+   Callback = function()
+      local args = {
+         [1] = {
+            itemId = 10050,
+            useCount = 1
+         },
+      }
+      game:GetService("ReplicatedStorage").Remotes.UseItem:InvokeServer(unpack(args))
+   end,
 })
+
+-- Зеля урона
+GameTab:CreateButton({
+   Name = "Зеля урона",
+   Callback = function()
+      local args = {
+         [1] = {
+            itemId = 10051,
+            useCount = 1
+         },
+      }
+      game:GetService("ReplicatedStorage").Remotes.UseItem:InvokeServer(unpack(args))
+   end,
+})
+
+-- Зеля мощі
+GameTab:CreateButton({
+   Name = "Зеля мощі",
+   Callback = function()
+      local args = {
+         [1] = {
+            itemId = 10052,
+            useCount = 1
+         },
+      }
+      game:GetService("ReplicatedStorage").Remotes.UseItem:InvokeServer(unpack(args))
+   end,
+})
+
+-- Зеля монет
+GameTab:CreateButton({
+   Name = "Зеля монет",
+   Callback = function()
+      local args = {
+         [1] = {
+            itemId = 10053,
+            useCount = 1
+         },
+      }
+      game:GetService("ReplicatedStorage").Remotes.UseItem:InvokeServer(unpack(args))
+   end,
+})
+
 
 GameTab:CreateSection("Скриває вилупленіє героїв")
 
@@ -170,6 +209,34 @@ GameTab:CreateToggle({
         end
     end
 })
+
+local Toggle = false
+
+GameTab:CreateToggle({
+    Name = "Авто відкриваня Сундука",
+    CurrentValue = false,
+    Callback = function(Value)
+        Toggle = Value
+
+        if Toggle then
+            task.spawn(function()
+                while Toggle do
+                    local args = {
+                        [1] = {
+                            itemId = 10271,
+                            useCount = 1
+                        },
+                    }
+                    
+                    game:GetService("ReplicatedStorage").Remotes.UseItem:InvokeServer(unpack(args))
+                    
+                    task.wait(0.1) -- ⏱ затримка (можу змінити)
+                end
+            end)
+        end
+    end,
+})
+
 -- ============================================
 -- 🎰 AUTO GACHA
 -- ============================================
@@ -179,7 +246,7 @@ GameTab:CreateSection("🎰 Auto Gacha")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local autoGacha = {}
-local delay = 0.2
+local delay = 0.1
 
 local gachas = {
     {name = "Breath Amplification W - 1", id = 400001},
@@ -220,4 +287,3 @@ for i, data in ipairs(gachas) do
         end,
     })
 end
-
