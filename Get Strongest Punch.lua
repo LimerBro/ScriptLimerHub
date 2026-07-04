@@ -1,0 +1,265 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Window = Rayfield:CreateWindow({
+    Name = "LimerHub",
+    Icon = 137349931636639,
+    LoadingTitle = "GAME Scripting ",
+    LoadingSubtitle = "Автор LimerBro",
+    Theme = "BlackYellowTheme",
+    
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "LimerHubConfigs",
+        FileName = "LimerHubSettings"
+    },
+})
+
+
+-- ============================================
+-- PLAYER TAB
+-- ============================================
+
+local PlayerTab = Window:CreateTab("Player", 6031071053)
+
+PlayerTab:CreateSlider({
+    Name = "Швидкість ходьби",
+    Range = {50, 200},
+    Increment = 1,
+    Suffix = "units",
+    CurrentValue = 50,
+    Flag = "WalkSpeed",
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed = Value
+    end
+})
+
+PlayerTab:CreateSection("Утиліти")
+
+PlayerTab:CreateButton({
+    Name = "Анті АФК",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/hassanxzayn-lua/Anti-afk/main/antiafkbyhassanxzyn"))()
+    end,
+})
+
+-- ============================================
+-- GAME TAB
+-- ============================================
+
+local GameTab = Window:CreateTab("Game", 6031265976)
+
+GameTab:CreateSection("Авто")
+
+-- Авто ребьорт
+local AutoRebirth = false
+
+GameTab:CreateToggle({
+    Name = "Авто Rebirth",
+    CurrentValue = false,
+    Flag = "AutoRebirth",
+    Callback = function(Value)
+        AutoRebirth = Value
+
+        task.spawn(function()
+            while AutoRebirth do
+                pcall(function()
+                    game:GetService("ReplicatedStorage").Remotes.RequestRebirth:FireServer()
+                end)
+                task.wait(0.5)
+            end
+        end)
+    end,
+})
+
+-- Авто збір нагород (1-7)
+local AutoRewards = false
+
+local AutoRewards = false
+
+GameTab:CreateToggle({
+    Name = "Авто Hour Rewards",
+    CurrentValue = false,
+    Flag = "AutoRewards",
+    Callback = function(Value)
+        AutoRewards = Value
+
+        if AutoRewards then
+            task.spawn(function()
+                while AutoRewards do
+                    for _, Reward in ipairs({1, 2, 3, 4, 5, 6, 7}) do
+                        if not AutoRewards then
+                            break
+                        end
+
+                        local args = {
+                            [1] = Reward,
+                            n = 1,
+                        }
+
+                        pcall(function()
+                            game:GetService("ReplicatedStorage").Remotes.HourClaimEvent:FireServer(
+                                unpack(args, 1, args.n or #args)
+                            )
+                        end)
+
+                        task.wait()
+                    end
+                end
+            end)
+        end
+    end,
+})
+
+GameTab:CreateSection("Боси")
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local SelectedBosses = {"1"}
+local AutoBoss = false
+
+GameTab:CreateDropdown({
+    Name = "Вибір босів",
+    Options = {
+        "1","2","3","4","5","6",
+        "7","8","9","10","11","12"
+    },
+    CurrentOption = {"1"},
+    MultipleOptions = true,
+    Flag = "BossSelect",
+    Callback = function(Options)
+        SelectedBosses = Options
+    end,
+})
+
+GameTab:CreateToggle({
+    Name = "Авто Boss",
+    CurrentValue = false,
+    Flag = "AutoBoss",
+    Callback = function(Value)
+        AutoBoss = Value
+
+        if AutoBoss then
+            task.spawn(function()
+                while AutoBoss do
+                    for _, Boss in ipairs(SelectedBosses) do
+                        if not AutoBoss then
+                            break
+                        end
+
+                        pcall(function()
+                            local args = {
+                                [1] = tonumber(Boss),
+                                [2] = 50,
+                                n = 2,
+                            }
+
+                            ReplicatedStorage.Remotes.RequestBossFight:FireServer(
+                                unpack(args, 1, args.n or #args)
+                            )
+                        end)
+
+                        task.wait()
+                    end
+
+                    task.wait()
+                end
+            end)
+        end
+    end,
+})
+
+GameTab:CreateSection("Магазин")
+
+local SelectedItem = "Protein"
+local AutoBuy = false
+
+GameTab:CreateDropdown({
+    Name = "Предмет",
+    Options = {
+        "Protein",
+        "PremiumProtein",
+        "RedBar",
+        "VoidBar",
+        "???"
+    },
+    CurrentOption = {"Protein"},
+    MultipleOptions = false,
+    Flag = "ShopItem",
+    Callback = function(Option)
+        SelectedItem = Option[1]
+    end,
+})
+
+GameTab:CreateToggle({
+    Name = "Авто покупка",
+    CurrentValue = false,
+    Flag = "AutoBuy",
+    Callback = function(Value)
+        AutoBuy = Value
+
+        if AutoBuy then
+            task.spawn(function()
+                while AutoBuy do
+                    pcall(function()
+                        local args = {
+                            [1] = SelectedItem,
+                            n = 1,
+                        }
+
+                        game:GetService("ReplicatedStorage").Remotes.ShopBuyCash:FireServer(
+                            unpack(args, 1, args.n or #args)
+                        )
+                    end)
+
+                    task.wait(0.5)
+                end
+            end)
+        end
+    end,
+})
+
+GameTab:CreateSection("Зони")
+
+local SelectedZone = "1"
+local AutoZone = false
+
+GameTab:CreateDropdown({
+    Name = "Вибір зони",
+    Options = {
+        "1","2","3","4","5","6",
+        "7","8","9","10","11","12"
+    },
+    CurrentOption = {"1"},
+    MultipleOptions = false,
+    Flag = "ZoneSelect",
+    Callback = function(Option)
+        SelectedZone = Option[1]
+    end,
+})
+
+GameTab:CreateToggle({
+    Name = "Авто Зона",
+    CurrentValue = false,
+    Flag = "AutoZone",
+    Callback = function(Value)
+        AutoZone = Value
+
+        if AutoZone then
+            task.spawn(function()
+                while AutoZone do
+                    pcall(function()
+                        local args = {
+                            [1] = tonumber(SelectedZone),
+                            n = 1,
+                        }
+
+                        game:GetService("ReplicatedStorage").Remotes.RequestEnterZone:FireServer(
+                            unpack(args, 1, args.n or #args)
+                        )
+                    end)
+
+                    task.wait(0.5)
+                end
+            end)
+        end
+    end,
+})
