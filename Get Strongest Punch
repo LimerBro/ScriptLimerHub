@@ -1,10 +1,11 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
 local Window = Rayfield:CreateWindow({
-    Name = "LimerHub",
-    Icon = 137349931636639,
-    LoadingTitle = "GAME Scripting ",
+    Name = "Get Strongest Punch",
+    Icon = 138387649157213,
+    LoadingTitle = "LimerHub ",
     LoadingSubtitle = "Автор LimerBro",
-    Theme = "BlackYellowTheme",
+    Theme = "Ocean",
     
     ConfigurationSaving = {
         Enabled = true,
@@ -13,12 +14,11 @@ local Window = Rayfield:CreateWindow({
     },
 })
 
-
 -- ============================================
 -- PLAYER TAB
 -- ============================================
 
-local PlayerTab = Window:CreateTab("Player", 6031071053)
+local PlayerTab = Window:CreateTab("Players", 4483362458)
 
 PlayerTab:CreateSlider({
     Name = "Швидкість ходьби",
@@ -45,7 +45,7 @@ PlayerTab:CreateButton({
 -- GAME TAB
 -- ============================================
 
-local GameTab = Window:CreateTab("Game", 6031265976)
+local GameTab = Window:CreateTab("Game", 4483362458)
 
 GameTab:CreateSection("Авто")
 
