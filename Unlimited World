@@ -70,7 +70,7 @@ GameTab:CreateToggle({
                 }
 
                 game:GetService("ReplicatedStorage").Remotes.StartLocalPlayerTeleport:FireServer(unpack(args, 1, args.n or #args))
-                task.wait(1)
+                task.wait(1000)
             end
         end)
     end,
@@ -92,7 +92,7 @@ GameTab:CreateToggle({
                 }
 
                 game:GetService("ReplicatedStorage").Remotes.StartLocalPlayerTeleport:FireServer(unpack(args, 1, args.n or #args))
-                task.wait(1)
+                task.wait(1000)
             end
         end)
     end,
