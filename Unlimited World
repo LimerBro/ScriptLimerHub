@@ -51,7 +51,52 @@ local GameTab = Window:CreateTab("Game", null)
 -- ============================================
 -- ⚔️ АВТО КЛІК
 -- ============================================
+local AutoCityRaid14 = false
+local AutoCityRaid17 = false
 
+GameTab:CreateToggle({
+    Name = "Auto TP City Raid 14",
+    CurrentValue = false,
+    Flag = "AutoCityRaid14",
+    Callback = function(Value)
+        AutoCityRaid14 = Value
+        task.spawn(function()
+            while AutoCityRaid14 do
+                local args = {
+                    [1] = {
+                        mapId = 50301
+                    },
+                    n = 1,
+                }
+
+                game:GetService("ReplicatedStorage").Remotes.StartLocalPlayerTeleport:FireServer(unpack(args, 1, args.n or #args))
+                task.wait(1)
+            end
+        end)
+    end,
+})
+
+GameTab:CreateToggle({
+    Name = "Auto TP City Raid 17",
+    CurrentValue = false,
+    Flag = "AutoCityRaid17",
+    Callback = function(Value)
+        AutoCityRaid17 = Value
+        task.spawn(function()
+            while AutoCityRaid17 do
+                local args = {
+                    [1] = {
+                        mapId = 50302
+                    },
+                    n = 1,
+                }
+
+                game:GetService("ReplicatedStorage").Remotes.StartLocalPlayerTeleport:FireServer(unpack(args, 1, args.n or #args))
+                task.wait(1)
+            end
+        end)
+    end,
+})
 GameTab:CreateSection("Автоматизація")
 -- Зеля удачі
 GameTab:CreateButton({
