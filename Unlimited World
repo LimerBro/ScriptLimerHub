@@ -23,10 +23,10 @@ PlayerTab:CreateSection("Main", Sword)
 
 PlayerTab:CreateSlider({
     Name = "Швидкість ходьби",
-    Range = {16, 200},
+    Range = {50, 200},
     Increment = 1,
     Suffix = "units",
-    CurrentValue = 16,
+    CurrentValue = 50,
     Flag = "WalkSpeed",
     Callback = function(Value)
         game.Players.LocalPlayer.Character:WaitForChild("Humanoid").WalkSpeed = Value
@@ -48,11 +48,81 @@ PlayerTab:CreateButton({
 
 local GameTab = Window:CreateTab("Game", null)
 
--- ============================================
--- ⚔️ АВТО КЛІК
--- ============================================
+-- Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Variables
+local AutoGroupReward = false
+
+-- Toggle
+MainTab:CreateToggle({
+    Name = "Auto Group Reward",
+    CurrentValue = false,
+    Flag = "AutoGroupReward",
+    Callback = function(Value)
+        AutoGroupReward = Value
+
+        task.spawn(function()
+            while AutoGroupReward do
+                pcall(function()
+                    local args = {
+                        [1] = nil,
+                        n = 1,
+                    }
+
+                    ReplicatedStorage.Remotes.ClaimGroupReward:InvokeServer(unpack(args, 1, args.n or #args))
+                end)
+
+                task.wait(30) -- перевірка кожні 30 секунд
+            end
+        end)
+    end,
+})
+
+local AutoDailyReward = false
+
+GameTab:CreateToggle({
+    Name = "Auto Daily Reward",
+    CurrentValue = false,
+    Flag = "AutoDailyReward",
+    Callback = function(Value)
+        AutoDailyReward = Value
+
+        task.spawn(function()
+            while AutoDailyReward do
+                pcall(function()
+                    game:GetService("ReplicatedStorage").Remotes.GetDailyRandomPsychic:FireServer()
+                end)
+
+                task.wait(60)
+            end
+        end)
+    end
+})
+
+local AutoVipReward = false
+
+GameTab:CreateToggle({
+    Name = "Auto VIP Reward",
+    CurrentValue = false,
+    Flag = "AutoVipReward",
+    Callback = function(Value)
+        AutoVipReward = Value
+
+        task.spawn(function()
+            while AutoVipReward do
+                pcall(function()
+                    game:GetService("ReplicatedStorage").Remotes.ClaimVipReward:InvokeServer()
+                end)
+
+                task.wait(60)
+            end
+        end)
+    end
+})
+
+
 local AutoCityRaid14 = false
-local AutoCityRaid17 = false
 
 GameTab:CreateToggle({
     Name = "Auto TP City Raid 14",
@@ -60,21 +130,21 @@ GameTab:CreateToggle({
     Flag = "AutoCityRaid14",
     Callback = function(Value)
         AutoCityRaid14 = Value
-        task.spawn(function()
-            while AutoCityRaid14 do
-                local args = {
-                    [1] = {
-                        mapId = 50301
-                    },
-                    n = 1,
-                }
 
-                game:GetService("ReplicatedStorage").Remotes.StartLocalPlayerTeleport:FireServer(unpack(args, 1, args.n or #args))
-                task.wait(1000)
-            end
-        end)
-    end,
+        if Value then
+            local args = {
+                [1] = {
+                    mapId = 50301
+                },
+                n = 1,
+            }
+
+            game:GetService("ReplicatedStorage").Remotes.StartLocalPlayerTeleport:FireServer(unpack(args,1,args.n or #args))
+        end
+    end
 })
+
+local AutoCityRaid17 = false
 
 GameTab:CreateToggle({
     Name = "Auto TP City Raid 17",
@@ -82,98 +152,68 @@ GameTab:CreateToggle({
     Flag = "AutoCityRaid17",
     Callback = function(Value)
         AutoCityRaid17 = Value
-        task.spawn(function()
-            while AutoCityRaid17 do
-                local args = {
-                    [1] = {
-                        mapId = 50302
-                    },
-                    n = 1,
-                }
-
-                game:GetService("ReplicatedStorage").Remotes.StartLocalPlayerTeleport:FireServer(unpack(args, 1, args.n or #args))
-                task.wait(1000)
-            end
-        end)
-    end,
-})
-GameTab:CreateSection("Автоматизація")
--- Зеля удачі
-GameTab:CreateButton({
-   Name = "Зеля удачі",
-   Callback = function()
-      local args = {
-         [1] = {
-            itemId = 10050,
-            useCount = 1
-         },
-      }
-      game:GetService("ReplicatedStorage").Remotes.UseItem:InvokeServer(unpack(args))
-   end,
-})
-
--- Зеля урона
-GameTab:CreateButton({
-   Name = "Зеля урона",
-   Callback = function()
-      local args = {
-         [1] = {
-            itemId = 10051,
-            useCount = 1
-         },
-      }
-      game:GetService("ReplicatedStorage").Remotes.UseItem:InvokeServer(unpack(args))
-   end,
-})
-
--- Зеля мощі
-GameTab:CreateButton({
-   Name = "Зеля мощі",
-   Callback = function()
-      local args = {
-         [1] = {
-            itemId = 10052,
-            useCount = 1
-         },
-      }
-      game:GetService("ReplicatedStorage").Remotes.UseItem:InvokeServer(unpack(args))
-   end,
-})
-
--- Зеля монет
-GameTab:CreateButton({
-   Name = "Зеля монет",
-   Callback = function()
-      local args = {
-         [1] = {
-            itemId = 10053,
-            useCount = 1
-         },
-      }
-      game:GetService("ReplicatedStorage").Remotes.UseItem:InvokeServer(unpack(args))
-   end,
-})
-
-
-GameTab:CreateSection("Скриває вилупленіє героїв")
-
-GameTab:CreateToggle({
-    Name = "Hide AnimationView",
-    CurrentValue = false,
-    Callback = function(Value)
-
-        local gui = game:GetService("Players").LocalPlayer
-            .PlayerGui.DrawCardPanel.AnimationView
 
         if Value then
-            gui.Size = UDim2.new(0,0,0,0)
-        else
-            gui.Size = UDim2.new(300,0,150,0) -- повернути назад (приклад)
-        end
+            local args = {
+                [1] = {
+                    mapId = 50302
+                },
+                n = 1,
+            }
 
+            game:GetService("ReplicatedStorage").Remotes.StartLocalPlayerTeleport:FireServer(unpack(args,1,args.n or #args))
+        end
     end
 })
 
+local SelectedPotion = 10050
+
+local PotionList = {
+    ["Big Luck"] = 10050,
+    ["Big Damage"] = 10051,
+    ["Big Strength"] = 10052,
+    ["Big Coins"] = 10053,
+
+    ["Greater Luck"] = 10328,
+    ["Greater Damage"] = 10329,
+    ["Greater Strength"] = 10330,
+    ["Greater Coins"] = 10331,
+}
+
+GameTab:CreateDropdown({
+    Name = "Potion",
+    Options = {
+        "Big Luck",
+        "Big Damage",
+        "Big Strength",
+        "Big Coins",
+        "Greater Luck",
+        "Greater Damage",
+        "Greater Strength",
+        "Greater Coins"
+    },
+    CurrentOption = {"Big Luck"},
+    MultipleOptions = false,
+    Flag = "PotionSelect",
+    Callback = function(Options)
+        SelectedPotion = PotionList[Options[1]]
+    end,
+})
+
+GameTab:CreateButton({
+    Name = "Craft Potion",
+    Callback = function()
+        local args = {
+            [1] = {
+                count = 3,
+                id = SelectedPotion
+            },
+            n = 1,
+        }
+
+        game:GetService("ReplicatedStorage").Remotes.PotionMerge:InvokeServer(unpack(args, 1, args.n or #args))
+    end,
+})
 
 GameTab:CreateSection("На дівається самий лучий мамонт")
 
@@ -181,7 +221,7 @@ GameTab:CreateButton({
     Name = "Equip Mount",
     Callback = function()
         local args = {
-            [1] = 100045
+            [1] = 100051
         }
 
         game:GetService("ReplicatedStorage")
@@ -189,146 +229,3 @@ GameTab:CreateButton({
             .EquipMount:FireServer(unpack(args))
     end
 })
-
-GameTab:CreateSection("Авто закупка книг по +1")
-
--- Перша
-GameTab:CreateToggle({
-    Name = "Книга 1",
-    CurrentValue = false,
-    Callback = function(Value)
-        _G.Exchange1 = Value
-
-        if Value then
-            task.spawn(function()
-                while _G.Exchange1 do
-                    game:GetService("ReplicatedStorage")
-                        .Remotes
-                        .MapShopExchange:FireServer(10020)
-
-                    task.wait(0.1)
-                end
-            end)
-        end
-    end
-})
-
--- Друга
-GameTab:CreateToggle({
-    Name = "Книга 2",
-    CurrentValue = false,
-    Callback = function(Value)
-        _G.Exchange2 = Value
-
-        if Value then
-            task.spawn(function()
-                while _G.Exchange2 do
-                    game:GetService("ReplicatedStorage")
-                        .Remotes
-                        .MapShopExchange:FireServer(10021)
-
-                    task.wait(0.1)
-                end
-            end)
-        end
-    end
-})
-
--- Третя
-GameTab:CreateToggle({
-    Name = "Книга 3",
-    CurrentValue = false,
-    Callback = function(Value)
-        _G.Exchange3 = Value
-
-        if Value then
-            task.spawn(function()
-                while _G.Exchange3 do
-                    game:GetService("ReplicatedStorage")
-                        .Remotes
-                        .MapShopExchange:FireServer(10022)
-
-                    task.wait(0.1)
-                end
-            end)
-        end
-    end
-})
-
-local Toggle = false
-
-GameTab:CreateToggle({
-    Name = "Авто відкриваня Сундука",
-    CurrentValue = false,
-    Callback = function(Value)
-        Toggle = Value
-
-        if Toggle then
-            task.spawn(function()
-                while Toggle do
-                    local args = {
-                        [1] = {
-                            itemId = 10271,
-                            useCount = 1
-                        },
-                    }
-                    
-                    game:GetService("ReplicatedStorage").Remotes.UseItem:InvokeServer(unpack(args))
-                    
-                    task.wait(0.1) -- ⏱ затримка (можу змінити)
-                end
-            end)
-        end
-    end,
-})
-
--- ============================================
--- 🎰 AUTO GACHA
--- ============================================
-
-GameTab:CreateSection("🎰 Auto Gacha")
-
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local autoGacha = {}
-local delay = 0.1
-
-local gachas = {
-    {name = "Breath Amplification W - 1", id = 400001},
-    {name = "Elemental Blessing W - 3", id = 400006},
-    {name = "Ornament W - 4", id = 400005},
-    {name = "Awakening W - 8", id = 400002},
-    {name = "Headdress W - 12 ", id = 400008},
-    {name = "Talisman W - 18", id = 400007},
-    {name = "Mask W - 20", id = 400009},
-}
-
-
--- TOGGLES
-for i, data in ipairs(gachas) do
-    autoGacha[i] = false
-
-    GameTab:CreateToggle({
-        Name = "Auto " .. data.name,
-        CurrentValue = false,
-        Callback = function(Value)
-            autoGacha[i] = Value
-
-            if Value then
-                task.spawn(function()
-                    while autoGacha[i] do
-                        local args = {
-                            [1] = {
-                                isAuto = false,
-                                machineId = data.id
-                            },
-                        }
-
-                        ReplicatedStorage.Remotes.RerollOrnament:InvokeServer(unpack(args))
-                        task.wait(delay)
-                    end
-                end)
-            end
-        end,
-    })
-end
