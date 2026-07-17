@@ -55,7 +55,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local AutoGroupReward = false
 
 -- Toggle
-MainTab:CreateToggle({
+GameTab:CreateToggle({
     Name = "Auto Group Reward",
     CurrentValue = false,
     Flag = "AutoGroupReward",
