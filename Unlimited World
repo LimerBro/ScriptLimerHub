@@ -120,50 +120,43 @@ GameTab:CreateToggle({
     end
 })
 
-
-local AutoCityRaid14 = false
-
-GameTab:CreateToggle({
-    Name = "Auto TP City Raid 14",
-    CurrentValue = false,
-    Flag = "AutoCityRaid14",
-    Callback = function(Value)
-        AutoCityRaid14 = Value
-
-        if Value then
-            local args = {
-                [1] = {
-                    mapId = 50301
-                },
-                n = 1,
-            }
-
-            game:GetService("ReplicatedStorage").Remotes.StartLocalPlayerTeleport:FireServer(unpack(args,1,args.n or #args))
-        end
-    end
-})
-
-local AutoCityRaid17 = false
+local AutoPressE = false
 
 GameTab:CreateToggle({
-    Name = "Auto TP City Raid 17",
+    Name = "Auto Press E (City Raid)",
     CurrentValue = false,
-    Flag = "AutoCityRaid17",
+    Flag = "AutoPressE",
     Callback = function(Value)
-        AutoCityRaid17 = Value
+        AutoPressE = Value
 
-        if Value then
-            local args = {
-                [1] = {
-                    mapId = 50302
-                },
-                n = 1,
-            }
+        task.spawn(function()
+            while AutoPressE do
+                pcall(function()
+                    local PromptService = game:GetService("ProximityPromptService")
 
-            game:GetService("ReplicatedStorage").Remotes.StartLocalPlayerTeleport:FireServer(unpack(args,1,args.n or #args))
-        end
-    end
+                    local Prompt14 = workspace:FindFirstChild("Maps")
+                        and workspace.Maps:FindFirstChild("Map14")
+                        and workspace.Maps.Map14.Map.CityRaidEnter.RootPart:FindFirstChild("ProximityPrompt")
+
+                    if Prompt14 and Prompt14.Enabled then
+                        fireproximityprompt(Prompt14)
+                    end
+
+                    local Prompt17 = workspace:FindFirstChild("Maps")
+                        and workspace.Maps:FindFirstChild("Map17")
+                        and workspace.Maps.Map17.Map.CityRaidEnter.RootPart:FindFirstChild("ProximityPrompt")
+
+                    if Prompt17 and Prompt17.Enabled then
+                        fireproximityprompt(Prompt17)
+                    end
+                end)
+
+                task.wait(0.2)
+            end
+        end)
+    end,
 })
+
 
 local SelectedPotion = 10050
 
